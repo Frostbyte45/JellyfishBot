@@ -1,0 +1,3 @@
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.2.0\JellyfishBot.csproj.CoreCompileInputs.cache
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.2.0\JellyfishBot.AssemblyInfoInputs.cache
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.2.0\JellyfishBot.AssemblyInfo.cs

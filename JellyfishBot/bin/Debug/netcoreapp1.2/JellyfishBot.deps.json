@@ -1,11 +1,11 @@
 {
   "runtimeTarget": {
-    "name": ".NETCoreApp,Version=v1.1",
+    "name": ".NETCoreApp,Version=v1.2",
     "signature": "7eb828f6488c332cf3c87fefec63071618961afc"
   },
   "compilationOptions": {},
   "targets": {
-    ".NETCoreApp,Version=v1.1": {
+    ".NETCoreApp,Version=v1.2": {
       "JellyfishBot/1.0.0": {
         "dependencies": {
           "Discord.Net": "1.0.2"

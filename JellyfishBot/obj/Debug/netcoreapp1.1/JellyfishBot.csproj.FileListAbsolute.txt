@@ -8,3 +8,13 @@ C:\Users\Owner\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.1\Je
 C:\Users\Owner\source\repos\JellyfishBot\JellyfishBot\bin\Debug\netcoreapp1.1\JellyfishBot.pdb
 C:\Users\Owner\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.1\JellyfishBot.dll
 C:\Users\Owner\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.1\JellyfishBot.pdb
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\bin\Debug\netcoreapp1.1\JellyfishBot.deps.json
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\bin\Debug\netcoreapp1.1\JellyfishBot.runtimeconfig.json
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\bin\Debug\netcoreapp1.1\JellyfishBot.runtimeconfig.dev.json
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\bin\Debug\netcoreapp1.1\JellyfishBot.dll
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\bin\Debug\netcoreapp1.1\JellyfishBot.pdb
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.1\JellyfishBot.csproj.CoreCompileInputs.cache
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.1\JellyfishBot.AssemblyInfoInputs.cache
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.1\JellyfishBot.AssemblyInfo.cs
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.1\JellyfishBot.dll
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.1\JellyfishBot.pdb
