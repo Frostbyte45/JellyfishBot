@@ -1,1 +1,4 @@
-dir_to_exclude/.vs/
+*.suo
+*.ide
+*.ide-shm
+*.ide-wal
