@@ -1,4 +1,1 @@
-*.suo
-*.ide
-*.ide-shm
-*.id-wal
+.vs/
