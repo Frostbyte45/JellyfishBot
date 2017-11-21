@@ -9,6 +9,7 @@ namespace JellyfishBot.Modules
 {
     public class JellyfishBotCommands : ModuleBase<SocketCommandContext>
     {
+        #region ping
         [Command("ping")]
         public async Task PingAsync()
         {
@@ -20,7 +21,9 @@ namespace JellyfishBot.Modules
 
             await ReplyAsync("", false, builder.Build());
         }
+        #endregion
 
+        #region echo
         [Command("echo")]
         public async Task EchoAsync([Remainder] string stuffToEcho)
         {
@@ -28,5 +31,6 @@ namespace JellyfishBot.Modules
 
             await ReplyAsync(stuffToEcho + "\n" + stuffToEcho + "\n" + stuffToEcho);
         }
+        #endregion
     }
 }
