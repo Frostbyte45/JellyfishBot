@@ -67,7 +67,7 @@ namespace JellyfishBot.Modules
         public async Task toText()
         {
             //toText Stub
-            await ReplyAsync("Not yet supported.");
+            await ReplyAsync("Not yet supported. ");
         }
         #endregion
     }
