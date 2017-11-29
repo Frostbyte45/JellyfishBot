@@ -70,7 +70,9 @@ namespace JellyfishBot
 
                 if (!result.IsSuccess)
                     Console.WriteLine(result.ErrorReason);
+                await message.DeleteAsync();
             }
+
         }
     }
 }

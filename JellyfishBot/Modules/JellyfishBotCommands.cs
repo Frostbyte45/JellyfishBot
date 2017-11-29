@@ -140,16 +140,9 @@ namespace JellyfishBot.Modules
             await ReplyAsync("Not yet supported.");
 
             // Get user's profile picture
-
-            // DeleteMessage(Context.Message,0);
+            
         }
         #endregion
-
-        #region DeleteMessage
-        private void DeleteMessage(SocketUserMessage message, int v)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
+        
     }
 }
