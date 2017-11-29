@@ -30,6 +30,9 @@ namespace JellyfishBot.Modules
             // Command "roll"
             msg += "roll <range> - rolls the dice (default is 1-6)\n";
 
+            // Command "pingu"
+            msg += "pingu - noot noot\n";
+
             //Command "toText"
             msg += "toText <user> - converts mentioned user's profile picture into pasteable unicode text\n";
 
@@ -63,6 +66,11 @@ namespace JellyfishBot.Modules
                 // Roll usage
                 case "roll":
                     msg2 += "Roll Usage:\n\"roll <range>\" to return a random number from 1 to range.";
+                    break;
+
+                // Pingu usage
+                case "pingu":
+                    msg2 += "Pingu Usage:\n\"pingu\" for noots.";
                     break;
 
                 // ToText usage
@@ -129,6 +137,14 @@ namespace JellyfishBot.Modules
                     await ReplyAsync("You rolled a " + temp);
                 }
             }
+        }
+        #endregion
+
+        #region pingu
+        [Command("pingu")]
+        public async Task PinguAsync()
+        {
+            await ReplyAsync("https://www.youtube.com/watch?v=Fs3BHRIyF2E");
         }
         #endregion
 
