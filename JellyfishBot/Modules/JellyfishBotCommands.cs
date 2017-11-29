@@ -3,15 +3,17 @@ using Discord.Commands;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Net;
 using System.Threading.Tasks;
 using Discord.WebSocket;
+using System.IO;
+using System.Drawing;
 
 namespace JellyfishBot.Modules
 {
     public class JellyfishBotCommands : ModuleBase<SocketCommandContext>
     {
         #region help
-        // Look what Nia did all by herself!
         [Command("help")]
         public async Task HelpAsync()
         {
@@ -93,7 +95,7 @@ namespace JellyfishBot.Modules
         public async Task PingAsync()
         {
             EmbedBuilder builder = new EmbedBuilder();
-            Color myRgbColor = new Color(255, 102, 179);
+            Discord.Color myRgbColor = new Discord.Color(255, 102, 179);
 
             builder.AddField("Ping!", "*bloop* ~ Pong!")
                 .WithColor(myRgbColor);
@@ -108,7 +110,7 @@ namespace JellyfishBot.Modules
         {
             stuffToEcho = "*" + stuffToEcho + "*";
 
-            await ReplyAsync(stuffToEcho + "\n" + stuffToEcho + "\n" + stuffToEcho);
+            await ReplyAsync(stuffToEcho/* + "\n" + stuffToEcho + "\n" + stuffToEcho*/);
         }
         #endregion
 
@@ -170,7 +172,37 @@ namespace JellyfishBot.Modules
             await ReplyAsync("Not yet supported.");
 
             // Get user's profile picture
+            var picUrl = Context.User.GetAvatarUrl(ImageFormat.Jpeg);
+            Uri picUri = new Uri(picUrl);
+            var webClient = new WebClient();
+            webClient.DownloadDataCompleted += new DownloadDataCompletedEventHandler(DownloadDataCallback);
+            webClient.DownloadDataAsync(picUri);
             
+
+        }
+
+        private void DownloadDataCallback(Object sender,DownloadDataCompletedEventArgs e) //Overloader for the download
+        {
+            // return e.Result;
+            try
+            {
+                // If the request was not canceled and did not throw
+                // an exception, display the resource.
+                if (!e.Cancelled && e.Error == null)
+                {
+                    byte[] data = (byte[])e.Result;
+                    string textData = System.Text.Encoding.UTF8.GetString(data);
+                    Bitmap bmp;
+                    using (var ms = new MemoryStream(data))
+                    {
+                        bmp = new Bitmap(ms);
+                    }
+                    Console.WriteLine(textData); // Temp
+                }
+            }catch(Exception err)
+            {
+                Console.WriteLine(err);
+            }
         }
         #endregion
         
