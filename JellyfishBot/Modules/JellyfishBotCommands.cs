@@ -195,6 +195,20 @@ namespace JellyfishBot.Modules
                 }
             }
         }
+        [Command("roll")]
+        public async Task RollAsync()
+        {
+            Random gen = new Random();
+            int temp = gen.Next(6) + 1;
+            if (temp == 11)
+            {
+                await ReplyAsync("Fiend, you rolled an " + temp + "... \nThe 89 Jellyfish mourn with you.");
+            }
+            else
+            {
+                await ReplyAsync("You rolled a " + temp);
+            }
+        }
         #endregion
 
         #region pingu
