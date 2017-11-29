@@ -70,7 +70,7 @@ namespace JellyfishBot
 
                 if (!result.IsSuccess)
                     Console.WriteLine(result.ErrorReason);
-                await Task.Delay(2000);
+                await Task.Delay(1500);
                 await arg.DeleteAsync();
             }
 
