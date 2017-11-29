@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Discord.WebSocket;
 using System.IO;
 using System.Drawing;
+using CoreExtensions;
+
 
 namespace JellyfishBot.Modules
 {
@@ -227,7 +229,6 @@ namespace JellyfishBot.Modules
         {
             // toText Stub
             await ReplyAsync("Not yet supported.");
-
             // Get user's profile picture
             var picUrl = Context.User.GetAvatarUrl(ImageFormat.Jpeg);
             Uri picUri = new Uri(picUrl);
@@ -240,21 +241,26 @@ namespace JellyfishBot.Modules
 
         private void DownloadDataCallback(Object sender,DownloadDataCompletedEventArgs e) //Overloader for the download
         {
-            // return e.Result;
             try
             {
                 // If the request was not canceled and did not throw
-                // an exception, display the resource.
+                // an exception, start conversion.
                 if (!e.Cancelled && e.Error == null)
                 {
+                    // Get the raw result bytes and declare Bitmap object
                     byte[] data = (byte[])e.Result;
-                    string textData = System.Text.Encoding.UTF8.GetString(data);
                     Bitmap bmp;
-                    using (var ms = new MemoryStream(data))
+
+                    // Read image data into a memory stream and use the stream to initialize Bitmap object
+                    using (MemoryStream ms = new MemoryStream(data, 0, data.Length))
                     {
+                        ms.Write(data, 0, data.Length);
                         bmp = new Bitmap(ms);
                     }
-                    Console.WriteLine(textData); // Temp
+                    Console.WriteLine("Image creation task completed. Moving to conversion task."); // Debug statement (Remove)
+
+                    // Begin conversion; check pixels for significance
+
                 }
             }catch(Exception err)
             {

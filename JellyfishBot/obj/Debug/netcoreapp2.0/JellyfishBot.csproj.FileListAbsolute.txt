@@ -20,3 +20,5 @@ C:\Users\Owner\Source\Repos\JellyfishBot2\JellyfishBot\obj\Debug\netcoreapp2.0\J
 C:\Users\Owner\Source\Repos\JellyfishBot2\JellyfishBot\obj\Debug\netcoreapp2.0\JellyfishBot.AssemblyInfo.cs
 C:\Users\Owner\Source\Repos\JellyfishBot2\JellyfishBot\obj\Debug\netcoreapp2.0\JellyfishBot.dll
 C:\Users\Owner\Source\Repos\JellyfishBot2\JellyfishBot\obj\Debug\netcoreapp2.0\JellyfishBot.pdb
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp2.0\JellyfishBot.Properties.Resources.resources
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp2.0\JellyfishBot.csproj.GenerateResource.Cache

@@ -18,3 +18,6 @@ C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.1\Je
 C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.1\JellyfishBot.AssemblyInfo.cs
 C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.1\JellyfishBot.dll
 C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.1\JellyfishBot.pdb
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.1\JellyfishBot.csprojResolveAssemblyReference.cache
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.1\JellyfishBot.Properties.Resources.resources
+C:\Users\calvc\source\repos\JellyfishBot\JellyfishBot\obj\Debug\netcoreapp1.1\JellyfishBot.csproj.GenerateResource.Cache
