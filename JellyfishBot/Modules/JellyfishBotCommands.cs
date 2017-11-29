@@ -21,6 +21,12 @@ namespace JellyfishBot.Modules
             // Command "help"
             msg += "help <cmd> - get command list, or get specific command usage\n";
 
+            // Command "goodnight"
+            msg += "goodnight <@user> - say goodnight properly to someone\n";
+
+            // Command "89"
+            msg += "89 - 89 made of 89's. What could be better?\n";
+
             // Command "ping"
             msg += "ping - get pong'd\n";
 
@@ -34,7 +40,7 @@ namespace JellyfishBot.Modules
             msg += "pingu - noot noot\n";
 
             //Command "toText"
-            msg += "toText <user> - converts mentioned user's profile picture into pasteable unicode text\n";
+            msg += "toText <@user> - converts mentioned user's profile picture into pasteable unicode text\n";
 
             msg += "\n```";
             await c.SendMessageAsync(msg);
@@ -52,7 +58,18 @@ namespace JellyfishBot.Modules
                     msg2 += "Help Usage:\n\"help <command>\" to get usage on a specific command, ";
                     msg2 += "or \"help\" to get a list of commands.\n";
                     break;
-                
+
+                // Goodnight usage
+                case "goodnight":
+                    msg2 += "Goodnight Usage:\n\"goodnight <@user>\" to say goodnight to a specific user, ";
+                    msg2 += "or \"goodnight\" to wish yourself goodnight.\n";
+                    break;
+
+                // 89 usage
+                case "89":
+                    msg2 += "89 Usage:\n\"89\" to get 89 made of 89's.";
+                    break;
+
                 // Ping usage
                 case "ping":
                     msg2 += "Ping Usage:\n\"ping\" to get a pong back.";
@@ -85,6 +102,46 @@ namespace JellyfishBot.Modules
             }
             msg2 += "```";
             await c.SendMessageAsync(msg2);
+        }
+        #endregion
+
+        #region goodnight
+        [Command("goodnight")]
+        public async Task GoodnightAsync()
+        {
+            await ReplyAsync(Context.User.Mention + ", May the 89 jellyfish gods bless your dreams with their presence.");
+        }
+
+        [Command("goodnight")]
+        public async Task GoodnightAsync(SocketUser user)
+        {
+            await ReplyAsync(user.Mention + ", May the 89 jellyfish gods bless your dreams with their presence.");
+        }
+        #endregion
+
+        #region 89
+        [Command("89")]
+        public async Task EightyNineAsync()
+        {
+            await ReplyAsync("e  i  g  h  t  y  n  i  n  e          e  i  g  h  t  y  n  i  n  e\n" +
+                             "i                                   i           i                                  i\n" +
+                             "g                                 g          g                                 g\n" +
+                             "h                                 h          h                                 h\n" +
+                             "t                                  t           t                                  t\n" +
+                             "y                                 y          y                                 y\n" +
+                             "n                                 n         n                                 n\n" +
+                             "i                                   i          i                                   i\n" +
+                             "n                                 n         n                                 n\n" +
+                             "e  i  g  h  t  y  n  i  n  e         e  i  g  h  t  y  n  i  n  e\n" +
+                             "i                                   i                                             i\n" +
+                             "g                                 g                                            g\n" +
+                             "h                                 h                                            h\n" +
+                             "t                                  t                                             t\n" +
+                             "y                                 y                                            y\n" +
+                             "n                                 n                                            n\n" +
+                             "i                                   i                                             i\n" +
+                             "n                                 n                                            n\n" +
+                             "e  i  g  h  t  y  n  i  n  e                                             e");
         }
         #endregion
 
@@ -159,6 +216,5 @@ namespace JellyfishBot.Modules
             
         }
         #endregion
-        
     }
 }
