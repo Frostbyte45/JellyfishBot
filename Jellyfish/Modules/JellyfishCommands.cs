@@ -50,8 +50,11 @@ namespace Jellyfish.Modules
             // Command "pingu"
             msg += "pingu - noot noot\n";
 
+            // Command "avatar"
+            msg += "avatar <@user> - get a link to the user's avatar\n";
+
             //Command "textify"
-            msg += "textify <@user> - converts mentioned user's profile picture into pasteable unicode text\n";
+            msg += "textify <@user OR link> - converts mentioned user's profile picture or an online picture's direct link into pasteable unicode text\n";
 
             msg += "\n```";
             await c.SendMessageAsync(msg);
@@ -81,11 +84,6 @@ namespace Jellyfish.Modules
                     msg2 += "89 Usage:\n\"89\" to get 89 made of 89's.";
                     break;
 
-                // Ping usage
-                case "ping":
-                    msg2 += "Ping Usage:\n\"ping\" to get a pong back.";
-                    break;
-                
                 // Echo usage
                 case "echo":
                     msg2 += "Echo Usage:\n\"echo <text>\" to repeat text.";
@@ -100,10 +98,15 @@ namespace Jellyfish.Modules
                 case "pingu":
                     msg2 += "Pingu Usage:\n\"pingu\" for noots.";
                     break;
+                
+                // Avatar usage
+                case "avatar":
+                    msg2 += "Avatar Usage:\n\"avatar <@user>\" to get that user's avatar.";
+                    break;
 
                 // Textify usage
                 case "textify":
-                    msg2 += "textify Usage:\n\"toText <user>\" to get that user's avatar as text (use mentions).";
+                    msg2 += "textify Usage:\n\"textify <@user OR link>\" to get that user's avatar or link's picture as text (use mentions).";
                     break;
                 
                 // Incorrect spelling section
@@ -230,6 +233,14 @@ namespace Jellyfish.Modules
         }
         #endregion
 
+        #region avatar
+        public async Task AvatarAsync([Remainder] SocketUser mention)
+        {
+            var picUrl = mention.GetAvatarUrl(Discord.ImageFormat.Jpeg);
+            await ReplyAsync("Here's the avatar url, " + Context.User.Mention + "!: " + picUrl);
+        }
+        #endregion
+
         #region textify
         [Command("textify")]
         public async Task TextifyAsync()
@@ -258,6 +269,17 @@ namespace Jellyfish.Modules
             // The rest of this command is handled in the event handler
         }
 
+        [Command("textify")]
+        public async Task TextifyAsync([Remainder] string url) // Overloader method for <@mentions>
+        {
+            Uri uri = new Uri(url);
+            await ReplyAsync("(Beta version, pictures might not look quite right!)");
+            var webClient = new WebClient();
+            webClient.DownloadDataCompleted += new DownloadDataCompletedEventHandler(DownloadDataCallback);
+            webClient.DownloadDataAsync(uri);
+            // The rest of this command is handled in the event handler
+        }
+
         // Event handler for download of User avatar (called by Overloader as well)
         private async void DownloadDataCallback(Object sender,DownloadDataCompletedEventArgs e) //Overloader for the download
         {
@@ -278,7 +300,11 @@ namespace Jellyfish.Modules
                         bmp = new System.Drawing.Bitmap(ms);
                     }
                     
-                    Console.WriteLine("Image requested, bounds: (" + bmp.Width + "," + bmp.Height + ")");
+                    if(bmp.Width > 128 || bmp.Height > 128)
+                    {
+                        bmp = ResizeImage(bmp, new Size(128, 128));
+                    }
+
                     // Get Pixels
                     int[,] pixel = new int[bmp.Width, bmp.Height]; // Grayscale
                     // System.Drawing.Color[,] pixels = new System.Drawing.Color[bmp.Width,bmp.Height];
@@ -359,7 +385,7 @@ namespace Jellyfish.Modules
                         Console.WriteLine("Image too large; size: " + output.Length);
                         output = output.Substring(0, 1999);
                     }
-                    await ReplyAsync("Conversion complete, your image is on the way " + Context.User.ToString() +"!");
+                    await ReplyAsync("Conversion complete, your image is on the way " + Context.User.Mention +"!");
 
                     // Should we DM them the image text since it would be spam-like otherwise?
                     IDMChannel ch = await Context.User.GetOrCreateDMChannelAsync();
@@ -368,7 +394,32 @@ namespace Jellyfish.Modules
                 }
             }catch(Exception err)
             {
+                await ReplyAsync("There was a problem converting that image, sorry!");
                 Console.WriteLine(err);
+            }
+        }
+        #endregion
+
+        #region resizeImage
+        /* ResizeImage
+         * Code is not original for this helper method
+         */
+        private Bitmap ResizeImage(Bitmap imgToResize, Size size)
+        {
+            try
+            {
+                Bitmap b = new Bitmap(size.Width, size.Height);
+                using (Graphics g = Graphics.FromImage(b))
+                {
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                    g.DrawImage(imgToResize, 0, 0, size.Width, size.Height);
+                }
+                return b;
+            }
+            catch
+            {
+                Console.WriteLine("Bitmap could not be resized");
+                return imgToResize;
             }
         }
         #endregion
