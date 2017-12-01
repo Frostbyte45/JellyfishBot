@@ -125,3 +125,4 @@ C:\Users\calvc\source\repos\Jellyfish\Jellyfish\obj\Debug\Jellyfish.csproj.Jelly
 C:\Users\calvc\source\repos\Jellyfish\Jellyfish\obj\Debug\Jellyfish.csproj.CoreCompileInputs.cache
 C:\Users\calvc\source\repos\Jellyfish\Jellyfish\obj\Debug\Jellyfish.exe
 C:\Users\calvc\source\repos\Jellyfish\Jellyfish\obj\Debug\Jellyfish.pdb
+C:\Users\calvc\source\repos\Jellyfish\Jellyfish\obj\Debug\Jellyfish.csprojResolveAssemblyReference.cache

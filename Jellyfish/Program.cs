@@ -1,4 +1,13 @@
-﻿using Discord;
+﻿/** Program
+ * Author(s): Ryan Rieger, Nia Specht
+ * Date: 11/20/2017
+ * Description: A bot that has some cool features, and also happens to be a meme between a group of friends.
+ * Usage: Please credit Ryan Rieger and Nia Specht for the code if you use it.
+ * Version: 1.0
+ * Completion Date: N/A
+ */
+
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;

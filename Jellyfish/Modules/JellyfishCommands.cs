@@ -1,4 +1,13 @@
-﻿using Discord;
+﻿/** Jellyfish Commands
+ * Author(s): Nia Specht, Ryan Rieger
+ * Date: 11/20/2017
+ * Description: Commands for the "Jellyfish" bot.
+ * Usage: DO NOT USE CODE WITHOUT CREDIT TO AUTHORS. The toText command took a lot of time to write and is Nia's side-project; credit is due.
+ * Version: 1.0
+ * Completion date: N/A
+ */
+
+using Discord;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
@@ -41,8 +50,8 @@ namespace Jellyfish.Modules
             // Command "pingu"
             msg += "pingu - noot noot\n";
 
-            //Command "toText"
-            msg += "toText <@user> - converts mentioned user's profile picture into pasteable unicode text\n";
+            //Command "textify"
+            msg += "textify <@user> - converts mentioned user's profile picture into pasteable unicode text\n";
 
             msg += "\n```";
             await c.SendMessageAsync(msg);
@@ -92,9 +101,9 @@ namespace Jellyfish.Modules
                     msg2 += "Pingu Usage:\n\"pingu\" for noots.";
                     break;
 
-                // ToText usage
-                case "toText":
-                    msg2 += "toText Usage:\n\"toText <user>\" to get that user's avatar as text (use mentions).";
+                // Textify usage
+                case "textify":
+                    msg2 += "textify Usage:\n\"toText <user>\" to get that user's avatar as text (use mentions).";
                     break;
                 
                 // Incorrect spelling section
@@ -221,12 +230,11 @@ namespace Jellyfish.Modules
         }
         #endregion
 
-        #region toText
-        [Command("toText")]
-        public async Task ToTextAsync()
+        #region textify
+        [Command("textify")]
+        public async Task TextifyAsync()
         {
-            // toText Stub
-            await ReplyAsync("(Beta version, still requires work)");
+            await ReplyAsync("(Beta version, pictures might not look quite right!)");
             // Get user's profile picture
             var picUrl = Context.User.GetAvatarUrl(Discord.ImageFormat.Jpeg);
             Uri picUri = new Uri(picUrl);
@@ -236,14 +244,13 @@ namespace Jellyfish.Modules
             // The rest of this command is handled in the event handler
         }
 
-        [Command("toText")]
-        public async Task ToTextAsync([Remainder] string mention) // Overloader method for <@mentions>
+        [Command("textify")]
+        public async Task TextifyAsync([Remainder] SocketUser mention) // Overloader method for <@mentions>
         {
-            // toText Stub
-            await ReplyAsync("(Beta version, still requires work)");
+            await ReplyAsync("(Beta version, pictures might not look quite right!)");
             // Get user's profile picture
-            IUser mentionedUser = await Context.Channel.GetUserAsync((ulong)Convert.ToInt64(mention.Replace('<',' ').Replace('!',' ').Replace('@',' ').Replace('>',' ').Trim()));
-            var picUrl = mentionedUser.GetAvatarUrl(Discord.ImageFormat.Jpeg);
+            //IUser mentionedUser = await Context.Channel.GetUserAsync((ulong)Convert.ToInt64(mention.Replace('<',' ').Replace('!',' ').Replace('@',' ').Replace('>',' ').Trim()));
+            var picUrl = mention.GetAvatarUrl(Discord.ImageFormat.Jpeg);
             Uri picUri = new Uri(picUrl);
             var webClient = new WebClient();
             webClient.DownloadDataCompleted += new DownloadDataCompletedEventHandler(DownloadDataCallback);
@@ -270,11 +277,8 @@ namespace Jellyfish.Modules
                         ms.Write(data, 0, data.Length);
                         bmp = new System.Drawing.Bitmap(ms);
                     }
-                    Console.WriteLine("Image requested, size: (" + bmp.Width + "," + bmp.Height + ")");
-                    // Resize image to 120x120, since Discord only supports 2k characters per message (Nia did math?!)
-                    // One second thought, it might be 128x128, which is the default profile pic size anyway... interesting, right?
-                    // bmp.SetResolution(120, 120);
-
+                    
+                    Console.WriteLine("Image requested, bounds: (" + bmp.Width + "," + bmp.Height + ")");
                     // Get Pixels
                     int[,] pixel = new int[bmp.Width, bmp.Height]; // Grayscale
                     // System.Drawing.Color[,] pixels = new System.Drawing.Color[bmp.Width,bmp.Height];
@@ -299,6 +303,7 @@ namespace Jellyfish.Modules
                     // Get significant gradience?
                     // int maxGradient = 0;
 
+                    // TODO: CHANGE PROGRAM TO USE SHADING TECHNIQUES
                     // Begin conversion; check pixels for significance by ignoring duplicate colors
                     int lastPixel = background;
                     Boolean[,] sigPix = new Boolean[pixel.GetLength(0), pixel.GetLength(1)];
@@ -306,6 +311,7 @@ namespace Jellyfish.Modules
                     {
                         for (int cntr2 = 0; cntr2 < pixel.GetLength(1); cntr2++)
                         {
+                            // Use random
                             sigPix[cntr, cntr2] = false; // Default significance value
                             if(lastPixel < pixel[cntr, cntr2] + 10 || pixel[cntr, cntr2] > 175/*(pixel[cntr, cntr2] - 10 < background && background < pixel[cntr, cntr2] + 10)*/)
                             //if (pixel[cntr, cntr2] < (255 / 2) || (pixel[cntr, cntr2] - 25 < lastPixel && lastPixel < pixel[cntr, cntr2] + 25) || (pixel[cntr, cntr2] - 5 < background && background < pixel[cntr, cntr2] + 5))
@@ -345,469 +351,7 @@ namespace Jellyfish.Modules
                     }
 
                     // With sixPix as the material and unicode braille as the medium, construct a textual representation of the image
-                    string output = "";
-                    int boundsX = pixel.GetLength(0);
-                    int boundsY = pixel.GetLength(1);
-                    // These bounds will ensure that the last pixels on the image will be rendered properly by the braille
-                    while(boundsX % 8 != 0) { boundsX++; }
-                    while (boundsY % 8 != 0) { boundsY++; }
-                    for (int cntr2 = 7; cntr2 <= boundsY; cntr2+=6) // X Value, increments by two
-                    {
-                        for (int cntr = 2; cntr < boundsX; cntr+=2) // Y Value, increments by 8
-                        {
-                            // ⠀⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿⡀⡁⡂⡃⡄⡅⡆⡇⡈⡉⡊⡋⡌⡍⡎⡏⡐⡑⡒⡓⡔⡕⡖⡗⡘⡙⡚⡛⡜⡝⡞⡟⡠⡡⡢⡣⡤⡥⡦⡧⡨⡩⡪⡫⡬⡭⡮⡯⡰⡱⡲⡳⡴⡵⡶⡷⡸⡹⡺⡻⡼⡽⡾⡿⢀⢁⢂⢃⢄⢅⢆⢇⢈⢉⢊⢋⢌⢍⢎⢏⢐⢑⢒⢓⢔⢕⢖⢗⢘⢙⢚⢛⢜⢝⢞⢟⢠⢡⢢⢣⢤⢥⢦⢧⢨⢩⢪⢫⢬⢭⢮⢯⢰⢱⢲⢳⢴⢵⢶⢷⢸⢹⢺⢻⢼⢽⢾⢿⣀⣁⣂⣃⣄⣅⣆⣇⣈⣉⣊⣋⣌⣍⣎⣏⣐⣑⣒⣓⣔⣕⣖⣗⣘⣙⣚⣛⣜⣝⣞⣟⣠⣡⣢⣣⣤⣥⣦⣧⣨⣩⣪⣫⣬⣭⣮⣯⣰⣱⣲⣳⣴⣵⣶⣷⣸⣹⣺⣻⣼⣽⣾⣿
-                            /*if (sigPix[cntr, cntr2]) // ⢀⢁⢂⢃⢄⢅⢆⢇⢈⢉⢊⢋⢌⢍⢎⢏⢐⢑⢒⢓⢔⢕⢖⢗⢘⢙⢚⢛⢜⢝⢞⢟⢠⢡⢢⢣⢤⢥⢦⢧⢨⢩⢪⢫⢬⢭⢮⢯⢰⢱⢲⢳⢴⢵⢶⢷⢸⢹⢺⢻⢼⢽⢾⢿⣀⣁⣂⣃⣄⣅⣆⣇⣈⣉⣊⣋⣌⣍⣎⣏⣐⣑⣒⣓⣔⣕⣖⣗⣘⣙⣚⣛⣜⣝⣞⣟⣠⣡⣢⣣⣤⣥⣦⣧⣨⣩⣪⣫⣬⣭⣮⣯⣰⣱⣲⣳⣴⣵⣶⣷⣸⣹⣺⣻⣼⣽⣾⣿
-                            {
-                                if(sigPix[cntr - 1, cntr2]) // ⣀⣁⣂⣃⣄⣅⣆⣇⣈⣉⣊⣋⣌⣍⣎⣏⣐⣑⣒⣓⣔⣕⣖⣗⣘⣙⣚⣛⣜⣝⣞⣟⣠⣡⣢⣣⣤⣥⣦⣧⣨⣩⣪⣫⣬⣭⣮⣯⣰⣱⣲⣳⣴⣵⣶⣷⣸⣹⣺⣻⣼⣽⣾⣿
-                                {
-                                    // TEMP
-                                    output += '⠀';
-                                }
-                                else // ⢀⢁⢂⢃⢄⢅⢆⢇⢈⢉⢊⢋⢌⢍⢎⢏⢐⢑⢒⢓⢔⢕⢖⢗⢘⢙⢚⢛⢜⢝⢞⢟⢠⢡⢢⢣⢤⢥⢦⢧⢨⢩⢪⢫⢬⢭⢮⢯⢰⢱⢲⢳⢴⢵⢶⢷⢸⢹⢺⢻⢼⢽⢾⢿
-                                {
-                                    //TEMP
-                                    output += '⠀';
-                                }
-                            }
-                            else */if(sigPix[cntr - 1, cntr2]) // ⡀⡁⡂⡃⡄⡅⡆⡇⡈⡉⡊⡋⡌⡍⡎⡏⡐⡑⡒⡓⡔⡕⡖⡗⡘⡙⡚⡛⡜⡝⡞⡟⡠⡡⡢⡣⡤⡥⡦⡧⡨⡩⡪⡫⡬⡭⡮⡯⡰⡱⡲⡳⡴⡵⡶⡷⡸⡹⡺⡻⡼⡽⡾⡿
-                            {
-                                if(sigPix[cntr, cntr2 - 1]) // 
-                                {
-                                    //TEMP
-                                    output += '⠀';
-                                }
-                                else
-                                {
-                                    //TEMP
-                                    output += '⠀';
-                                }
-                            } // ⠀⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿
-                            else if(sigPix[cntr, cntr2 - 1]) // ⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿
-                            {
-                                if(sigPix[cntr - 1, cntr2 - 1]) // ⠤⠥⠦⠧⠬⠭⠮⠯⠴⠵⠶⠷⠼⠽⠾⠿
-                                {
-                                    if(sigPix[cntr, cntr2 - 2]) // ⠴⠵⠶⠷⠼⠽⠾⠿
-                                    {
-                                        if(sigPix[cntr - 1, cntr2 - 2]) // ⠶⠷⠾⠿
-                                        {
-                                            if(sigPix[cntr, cntr2 - 3]) // ⠾⠿
-                                            {
-                                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠿
-                                                {
-                                                    output += '⠿';
-                                                }
-                                                else // ⠾
-                                                {
-                                                    output += '⠾';
-                                                }
-                                            }
-                                            else // ⠶⠷
-                                            {
-                                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠷
-                                                {
-                                                    output += '⠷';
-                                                }
-                                                else // ⠶
-                                                {
-                                                    output += '⠶';
-                                                }
-                                            }
-                                        }
-                                        else // ⠴⠵⠼⠽
-                                        {
-                                            if(sigPix[cntr, cntr2 - 3]) // ⠼⠽
-                                            {
-                                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠽
-                                                {
-                                                    output += '⠽';
-                                                }
-                                                else // ⠼
-                                                {
-                                                    output += '⠼';
-                                                }
-                                            }
-                                            else // ⠴⠵
-                                            {
-                                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠵
-                                                {
-                                                    output += '⠵';
-                                                }
-                                                else // ⠴
-                                                {
-                                                    output += '⠴';
-                                                }
-                                            }
-                                        }
-                                    }
-                                    else // ⠤⠥⠦⠧⠬⠭⠮⠯
-                                    {
-                                        if(sigPix[cntr - 1, cntr2 - 2]) // ⠦⠧⠮⠯
-                                        {
-                                            if(sigPix[cntr, cntr2 - 3]) // ⠮⠯
-                                            {
-                                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠯
-                                                {
-                                                    output += '⠯';
-                                                }
-                                                else // ⠮
-                                                {
-                                                    output += '⠮';
-                                                }
-                                            }
-                                            else // ⠦⠧
-                                            {
-                                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠧
-                                                {
-                                                    output += '⠧';
-                                                }
-                                                else // ⠦
-                                                {
-                                                    output += '⠦';
-                                                }
-                                            }
-                                        }
-                                        else // ⠤⠥⠬⠭
-                                        {
-                                            if(sigPix[cntr, cntr2 - 3]) // ⠬⠭
-                                            {
-                                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠭
-                                                {
-                                                    output += '⠭';
-                                                }
-                                                else // ⠬
-                                                {
-                                                    output += '⠬';
-                                                }
-                                            }
-                                            else // ⠤⠥
-                                            {
-                                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠥
-                                                {
-                                                    output += '⠥';
-                                                }
-                                                else // ⠤
-                                                {
-                                                    output += '⠤';
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                else // ⠠⠡⠢⠣⠨⠩⠪⠫⠰⠱⠲⠳⠸⠹⠺⠻
-                                {
-                                    if(sigPix[cntr, cntr2 - 2]) // ⠰⠱⠲⠳⠸⠹⠺⠻
-                                    {
-                                        if(sigPix[cntr - 1, cntr2 - 2]) // ⠲⠳⠺⠻
-                                        {
-                                            if(sigPix[cntr, cntr2 - 3]) // ⠺⠻
-                                            {
-                                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠻
-                                                {
-                                                    output += '⠻';
-                                                }
-                                                else // ⠺
-                                                {
-                                                    output += '⠺';
-                                                }
-                                            }
-                                            else // ⠲⠳
-                                            {
-                                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠳
-                                                {
-                                                    output += '⠳';
-                                                }
-                                                else // ⠲
-                                                {
-                                                    output += '⠲';
-                                                }
-                                            }
-                                        }
-                                        else // ⠰⠱⠸⠹
-                                        {
-                                            if(sigPix[cntr, cntr2 - 3]) // ⠸⠹
-                                            {
-                                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠹
-                                                {
-                                                    output += '⠹';
-                                                }
-                                                else // ⠸
-                                                {
-                                                    output += '⠸';
-                                                }
-                                            }
-                                            else // ⠰⠱
-                                            {
-                                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠱
-                                                {
-                                                    output += '⠱';
-                                                }
-                                                else // ⠰
-                                                {
-                                                    output += '⠰';
-                                                }
-                                            }
-                                        }
-                                    }
-                                    else // ⠠⠡⠢⠣⠨⠩⠪⠫
-                                    {
-                                        if(sigPix[cntr - 1, cntr2 - 2]) // ⠢⠣⠪⠫
-                                        {
-                                            if(sigPix[cntr, cntr2 - 3]) // ⠪⠫
-                                            {
-                                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠫
-                                                {
-                                                    output += '⠫';
-                                                }
-                                                else // ⠪
-                                                {
-                                                    output += '⠪';
-                                                }
-                                            }
-                                            else // ⠢⠣
-                                            {
-                                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠣
-                                                {
-                                                    output += '⠣';
-                                                }
-                                                else // ⠢
-                                                {
-                                                    output += '⠢';
-                                                }
-                                            }
-                                        }
-                                        else // ⠠⠡⠨⠩
-                                        {
-                                            if(sigPix[cntr, cntr2 - 3]) // ⠨⠩
-                                            {
-                                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠩
-                                                {
-                                                    output += '⠩';
-                                                }
-                                                else // ⠨
-                                                {
-                                                    output += '⠨';
-                                                }
-                                            }
-                                            else // ⠠⠡
-                                            {
-                                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠡
-                                                {
-                                                    output += '⠡';
-                                                }
-                                                else // ⠠
-                                                {
-                                                    output += '⠠';
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } // ⠀⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟
-                            else if(sigPix[cntr - 1, cntr2 - 1]) // ⠄⠅⠆⠇⠌⠍⠎⠏⠔⠕⠖⠗⠜⠝⠞⠟
-                            {
-                                if(sigPix[cntr, cntr2 - 2]) // ⠔⠕⠖⠗⠜⠝⠞⠟
-                                {
-                                    if(sigPix[cntr - 1, cntr2 - 2]) // ⠖⠗⠞⠟
-                                    {
-                                        if(sigPix[cntr, cntr2 - 3]) // ⠞⠟
-                                        {
-                                            if(sigPix[cntr - 1, cntr2 - 3]) // ⠟
-                                            {
-                                                output += '⠟';
-                                            }
-                                            else // ⠞
-                                            {
-                                                output += '⠞';
-                                            }
-                                        }
-                                        else // ⠖⠗
-                                        {
-                                            if(sigPix[cntr - 1, cntr - 3]) // ⠗
-                                            {
-                                                output += '⠗';
-                                            }
-                                            else // ⠖
-                                            {
-                                                output += '⠖';
-                                            }
-                                        }
-                                    }
-                                    else // ⠔⠕⠜⠝
-                                    {
-                                        if(sigPix[cntr, cntr2 - 3]) // ⠜⠝
-                                        {
-                                            if(sigPix[cntr - 1, cntr2 - 3]) // ⠜
-                                            {
-                                                output += '⠜';
-                                            }
-                                            else // ⠝
-                                            {
-                                                output += '⠝';
-                                            }
-                                        }
-                                        else // ⠔⠕
-                                        {
-                                            if(sigPix[cntr, cntr2 - 3]) // ⠕
-                                            {
-                                                output += '⠕';
-                                            }
-                                            else // ⠔
-                                            {
-                                                output += '⠔';
-                                            }
-                                        }
-                                    }
-                                }
-                                else // ⠄⠅⠆⠇⠌⠍⠎⠏
-                                {
-                                    if(sigPix[cntr - 1, cntr2 - 2]) // ⠆⠇⠎⠏
-                                    {
-                                        if(sigPix[cntr, cntr2 - 3]) // ⠎⠏
-                                        {
-                                            if(sigPix[cntr - 1, cntr2 - 3]) // ⠏
-                                            {
-                                                output += '⠏';
-                                            }
-                                            else // ⠎
-                                            {
-                                                output += '⠎';
-                                            }
-                                        }
-                                        else // ⠆⠇
-                                        {
-                                            if(sigPix[cntr - 1, cntr2 - 3]) // ⠇
-                                            {
-                                                output += '⠇';
-                                            }
-                                            else // ⠆
-                                            {
-                                                output += '⠆';
-                                            }
-                                        }
-                                    }
-                                    else // ⠄⠅⠌⠍
-                                    {
-                                        if(sigPix[cntr, cntr2 - 3]) // ⠌⠍
-                                        {
-                                            if(sigPix[cntr - 1, cntr2 - 3]) // ⠍
-                                            {
-                                                output += '⠍';
-                                            }
-                                            else // ⠌
-                                            {
-                                                output += '⠌';
-                                            }
-                                        }
-                                        else // ⠄⠅
-                                        {
-                                            if(sigPix[cntr, cntr2 - 3]) // ⠅
-                                            {
-                                                output += '⠅';
-                                            }
-                                            else // ⠄
-                                            {
-                                                output += '⠄';
-                                            }
-                                        }
-                                    }
-                                }
-                            } // ⠀⠁⠂⠃⠈⠉⠊⠋⠐⠑⠒⠓⠘⠙⠚⠛
-                            else if(sigPix[cntr, cntr2 - 2]) // ⠐⠑⠒⠓⠘⠙⠚⠛
-                            {
-                                if(sigPix[cntr - 1, cntr2 - 2]) // ⠒⠓⠚⠛
-                                {
-                                    if(sigPix[cntr, cntr2 - 3]) // ⠚⠛
-                                    {
-                                        if(sigPix[cntr - 1, cntr2 - 3]) // ⠛
-                                        {
-                                            output += '⠛';
-                                        }
-                                        else // ⠚
-                                        {
-                                            output += '⠚';
-                                        }
-                                    }
-                                    else // ⠒⠓
-                                    {
-                                        if(sigPix[cntr - 1, cntr2 - 3]) // ⠓
-                                        {
-                                            output += '⠓';
-                                        }
-                                        else // ⠒
-                                        {
-                                            output += '⠒';
-                                        }
-                                    }
-                                }
-                                else // ⠐⠑⠘⠙
-                                {
-                                    if(sigPix[cntr, cntr2 - 3]) // ⠘⠙
-                                    {
-                                        if(sigPix[cntr - 1, cntr2 - 3]) // ⠙
-                                        {
-                                            output += '⠙';
-                                        }
-                                        else // ⠘
-                                        {
-                                            output += '⠘';
-                                        }
-                                    }
-                                    else // ⠐⠑
-                                    {
-                                        if(sigPix[cntr - 1, cntr2 - 3]) // ⠑
-                                        {
-                                            output += '⠑';
-                                        }
-                                        else // ⠐
-                                        {
-                                            output += '⠐';
-                                        }
-                                    }
-                                }
-                            } // ⠀⠁⠂⠃⠈⠉⠊⠋
-                            else if(sigPix[cntr - 1, cntr2 - 2]) // ⠂⠃⠊⠋
-                            {
-                                if(sigPix[cntr, cntr2 - 3]) // ⠊⠋
-                                {
-                                    if(sigPix[cntr - 1, cntr2 - 3]) // ⠋
-                                    {
-                                        output += '⠋';
-                                    }
-                                    else // ⠃
-                                    {
-                                        output += '⠃';
-                                    }
-                                }
-                                else // ⠂
-                                {
-                                    output += '⠂';
-                                }
-                            } // ⠀⠁⠈⠉
-                            else if(sigPix[cntr, cntr2 - 3]) // ⠈⠉
-                            {
-                                if(sigPix[cntr - 1, cntr2 - 3]) // ⠉
-                                {
-                                    output += '⠉';
-                                }
-                                else // ⠈
-                                {
-                                    output += '⠈';
-                                }
-                            } // ⠀⠁
-                            else if(sigPix[cntr - 1, cntr2 - 3]) // ⠁
-                            {
-                                output += '⠁';
-                            } // ⠀
-                            else // ⠀
-                            {
-                                output += '⠀';
-                            }
-                            if (cntr == boundsX - 2) // Right side of image needs endline character
-                            {
-                                output += "\n\n";
-                            }
-                        }
-                    }
+                    string output = ToBraille(sigPix);
 
                     // Final output
                     if(output.Length > 2000)
@@ -815,7 +359,7 @@ namespace Jellyfish.Modules
                         Console.WriteLine("Image too large; size: " + output.Length);
                         output = output.Substring(0, 1999);
                     }
-                    await ReplyAsync("Conversion complete, your image is on the way!");
+                    await ReplyAsync("Conversion complete, your image is on the way " + Context.User.ToString() +"!");
 
                     // Should we DM them the image text since it would be spam-like otherwise?
                     IDMChannel ch = await Context.User.GetOrCreateDMChannelAsync();
@@ -826,6 +370,1792 @@ namespace Jellyfish.Modules
             {
                 Console.WriteLine(err);
             }
+        }
+        #endregion
+
+        #region toBraille
+        /* ToBraille
+         * Credit to Nia for this huge function!
+         * There might be an easier way to handle this using binary numbers.
+         */
+        private string ToBraille(Boolean[,] sigPix)
+        {
+            string output = "";
+            int boundsX = 128;
+            int boundsY = 128;
+            // These bounds will ensure that the last pixels on the image will be rendered properly by the braille
+            while (boundsX % 8 != 0) { boundsX++; }
+            while (boundsY % 8 != 0) { boundsY++; }
+            for (int cntr2 = 4; cntr2 < boundsY; cntr2 += 4) // X Value, increments by two
+            {
+                for (int cntr = 2; cntr < boundsX; cntr += 2) // Y Value, increments by 8
+                {
+                    // ⠀⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿⡀⡁⡂⡃⡄⡅⡆⡇⡈⡉⡊⡋⡌⡍⡎⡏⡐⡑⡒⡓⡔⡕⡖⡗⡘⡙⡚⡛⡜⡝⡞⡟⡠⡡⡢⡣⡤⡥⡦⡧⡨⡩⡪⡫⡬⡭⡮⡯⡰⡱⡲⡳⡴⡵⡶⡷⡸⡹⡺⡻⡼⡽⡾⡿⢀⢁⢂⢃⢄⢅⢆⢇⢈⢉⢊⢋⢌⢍⢎⢏⢐⢑⢒⢓⢔⢕⢖⢗⢘⢙⢚⢛⢜⢝⢞⢟⢠⢡⢢⢣⢤⢥⢦⢧⢨⢩⢪⢫⢬⢭⢮⢯⢰⢱⢲⢳⢴⢵⢶⢷⢸⢹⢺⢻⢼⢽⢾⢿⣀⣁⣂⣃⣄⣅⣆⣇⣈⣉⣊⣋⣌⣍⣎⣏⣐⣑⣒⣓⣔⣕⣖⣗⣘⣙⣚⣛⣜⣝⣞⣟⣠⣡⣢⣣⣤⣥⣦⣧⣨⣩⣪⣫⣬⣭⣮⣯⣰⣱⣲⣳⣴⣵⣶⣷⣸⣹⣺⣻⣼⣽⣾⣿
+                    if (sigPix[cntr, cntr2]) // ⢀⢁⢂⢃⢄⢅⢆⢇⢈⢉⢊⢋⢌⢍⢎⢏⢐⢑⢒⢓⢔⢕⢖⢗⢘⢙⢚⢛⢜⢝⢞⢟⢠⢡⢢⢣⢤⢥⢦⢧⢨⢩⢪⢫⢬⢭⢮⢯⢰⢱⢲⢳⢴⢵⢶⢷⢸⢹⢺⢻⢼⢽⢾⢿⣀⣁⣂⣃⣄⣅⣆⣇⣈⣉⣊⣋⣌⣍⣎⣏⣐⣑⣒⣓⣔⣕⣖⣗⣘⣙⣚⣛⣜⣝⣞⣟⣠⣡⣢⣣⣤⣥⣦⣧⣨⣩⣪⣫⣬⣭⣮⣯⣰⣱⣲⣳⣴⣵⣶⣷⣸⣹⣺⣻⣼⣽⣾⣿
+                    {
+                        if (sigPix[cntr - 1, cntr2]) // ⣀⣁⣂⣃⣄⣅⣆⣇⣈⣉⣊⣋⣌⣍⣎⣏⣐⣑⣒⣓⣔⣕⣖⣗⣘⣙⣚⣛⣜⣝⣞⣟⣠⣡⣢⣣⣤⣥⣦⣧⣨⣩⣪⣫⣬⣭⣮⣯⣰⣱⣲⣳⣴⣵⣶⣷⣸⣹⣺⣻⣼⣽⣾⣿
+                        {
+                            if (sigPix[cntr, cntr2 - 1]) // ⣠⣡⣢⣣⣤⣥⣦⣧⣨⣩⣪⣫⣬⣭⣮⣯⣰⣱⣲⣳⣴⣵⣶⣷⣸⣹⣺⣻⣼⣽⣾⣿
+                            {
+                                if (sigPix[cntr - 1, cntr2 - 1]) // ⣤⣥⣦⣧⣬⣭⣮⣯⣴⣵⣶⣷⣼⣽⣾⣿
+                                {
+                                    if (sigPix[cntr, cntr2 - 2]) // ⣴⣵⣶⣷⣼⣽⣾⣿
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 2]) // ⣶⣷⣾⣿
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⣾⣿
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣿
+                                                {
+                                                    output += '⣿';
+                                                }
+                                                else // ⣾
+                                                {
+                                                    output += '⣾';
+                                                }
+                                            }
+                                            else // ⣶⣷
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣷
+                                                {
+                                                    output += '⣷';
+                                                }
+                                                else // ⣶
+                                                {
+                                                    output += '⣶';
+                                                }
+                                            }
+                                        }
+                                        else // ⣴⣵⣼⣽
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⣼⣽
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣽
+                                                {
+                                                    output += '⣽';
+                                                }
+                                                else // ⣼
+                                                {
+                                                    output += '⣼';
+                                                }
+                                            }
+                                            else // ⣴⣵
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣵
+                                                {
+                                                    output += '⣵';
+                                                }
+                                                else // ⣴
+                                                {
+                                                    output += '⣴';
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else // ⣤⣥⣦⣧⣬⣭⣮⣯
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 2]) // ⣦⣧⣮⣯
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⣮⣯
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣯
+                                                {
+                                                    output += '⣯';
+                                                }
+                                                else // ⣮
+                                                {
+                                                    output += '⣮';
+                                                }
+                                            }
+                                            else // ⣦⣧
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣧
+                                                {
+                                                    output += '⣧';
+                                                }
+                                                else // ⣦
+                                                {
+                                                    output += '⣦';
+                                                }
+                                            }
+                                        }
+                                        else // ⣤⣥⣬⣭
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⣬⣭
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣭
+                                                {
+                                                    output += '⣭';
+                                                }
+                                                else // ⣬
+                                                {
+                                                    output += '⣬';
+                                                }
+                                            }
+                                            else // ⣤⣥
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣥
+                                                {
+                                                    output += '⣥';
+                                                }
+                                                else // ⣤
+                                                {
+                                                    output += '⣤';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                else // ⣠⣡⣢⣣⣨⣩⣪⣫⣰⣱⣲⣳⣸⣹⣺⣻
+                                {
+                                    if (sigPix[cntr, cntr2 - 2]) // ⣰⣱⣲⣳⣸⣹⣺⣻
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 2]) // ⣲⣳⣺⣻
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⣺⣻
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣻
+                                                {
+                                                    output += '⣻';
+                                                }
+                                                else // ⣺
+                                                {
+                                                    output += '⣺';
+                                                }
+                                            }
+                                            else // ⣲⣳
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣳
+                                                {
+                                                    output += '⣳';
+                                                }
+                                                else // ⣲
+                                                {
+                                                    output += '⣲';
+                                                }
+                                            }
+                                        }
+                                        else // ⣰⣱⣸⣹
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⣸⣹
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣹
+                                                {
+                                                    output += '⣹';
+                                                }
+                                                else // ⣸
+                                                {
+                                                    output += '⣸';
+                                                }
+                                            }
+                                            else // ⣰⣱
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣱
+                                                {
+                                                    output += '⣱';
+                                                }
+                                                else // ⣰
+                                                {
+                                                    output += '⣰';
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else // ⣠⣡⣢⣣⣨⣩⣪⣫
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 2]) // ⣢⣣⣪⣫
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⣪⣫
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣫
+                                                {
+                                                    output += '⣫';
+                                                }
+                                                else // ⣪
+                                                {
+                                                    output += '⣪';
+                                                }
+                                            }
+                                            else // ⣢⣣
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣣
+                                                {
+                                                    output += '⣣';
+                                                }
+                                                else // ⣢
+                                                {
+                                                    output += '⣢';
+                                                }
+                                            }
+                                        }
+                                        else // ⣠⣡⣨⣩
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⣨⣩
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣩
+                                                {
+                                                    output += '⣩';
+                                                }
+                                                else // ⣨
+                                                {
+                                                    output += '⣨';
+                                                }
+                                            }
+                                            else // ⣠⣡
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣡
+                                                {
+                                                    output += '⣡';
+                                                }
+                                                else // ⣠
+                                                {
+                                                    output += '⣠';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else // ⣀⣁⣂⣃⣄⣅⣆⣇⣈⣉⣊⣋⣌⣍⣎⣏⣐⣑⣒⣓⣔⣕⣖⣗⣘⣙⣚⣛⣜⣝⣞⣟
+                            {
+                                if (sigPix[cntr - 1, cntr2 - 1]) // ⣄⣅⣆⣇⣌⣍⣎⣏⣔⣕⣖⣗⣜⣝⣞⣟
+                                {
+                                    if (sigPix[cntr, cntr2 - 2]) // ⣔⣕⣖⣗⣜⣝⣞⣟
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 2]) // ⣖⣗⣞⣟
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⣞⣟
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣟
+                                                {
+                                                    output += '⣟';
+                                                }
+                                                else // ⣞
+                                                {
+                                                    output += '⣞';
+                                                }
+                                            }
+                                            else // ⣖⣗
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣗
+                                                {
+                                                    output += '⣗';
+                                                }
+                                                else // ⣖
+                                                {
+                                                    output += '⣖';
+                                                }
+                                            }
+                                        }
+                                        else // ⣔⣕⣜⣝
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⣜⣝
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣝
+                                                {
+                                                    output += '⣝';
+                                                }
+                                                else // ⣜
+                                                {
+                                                    output += '⣜';
+                                                }
+                                            }
+                                            else // ⣔⣕
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣕
+                                                {
+                                                    output += '⣕';
+                                                }
+                                                else // ⣔
+                                                {
+                                                    output += '⣔';
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else // ⣄⣅⣆⣇⣌⣍⣎⣏
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 2]) // ⣆⣇⣎⣏
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⣎⣏
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣏
+                                                {
+                                                    output += '⣏';
+                                                }
+                                                else // ⣎
+                                                {
+                                                    output += '⣎';
+                                                }
+                                            }
+                                            else // ⣆⣇
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣇
+                                                {
+                                                    output += '⣇';
+                                                }
+                                                else // ⣆
+                                                {
+                                                    output += '⣆';
+                                                }
+                                            }
+                                        }
+                                        else // ⣄⣅⣌⣍
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⣌⣍
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣍
+                                                {
+                                                    output += '⣍';
+                                                }
+                                                else // ⣌
+                                                {
+                                                    output += '⣌';
+                                                }
+                                            }
+                                            else // ⣄⣅
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣅
+                                                {
+                                                    output += '⣅';
+                                                }
+                                                else // ⣄
+                                                {
+                                                    output += '⣄';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                else // ⣀⣁⣂⣃⣈⣉⣊⣋⣐⣑⣒⣓⣘⣙⣚⣛
+                                {
+                                    if (sigPix[cntr, cntr2 - 2]) // ⣐⣑⣒⣓⣘⣙⣚⣛
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 2]) // ⣒⣓⣚⣛
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⣚⣛
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣛
+                                                {
+                                                    output += '⣛';
+                                                }
+                                                else // ⣚
+                                                {
+                                                    output += '⣚';
+                                                }
+                                            }
+                                            else // ⣒⣓
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣓
+                                                {
+                                                    output += '⣓';
+                                                }
+                                                else // ⣒
+                                                {
+                                                    output += '⣒';
+                                                }
+                                            }
+                                        }
+                                        else // ⣐⣑⣘⣙
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⣘⣙
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣙
+                                                {
+                                                    output += '⣙';
+                                                }
+                                                else // ⣘
+                                                {
+                                                    output += '⣘';
+                                                }
+                                            }
+                                            else // ⣐⣑
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣑
+                                                {
+                                                    output += '⣑';
+                                                }
+                                                else // ⣐
+                                                {
+                                                    output += '⣐';
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else // ⣀⣁⣂⣃⣈⣉⣊⣋
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 2]) // ⣂⣃⣊⣋
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⣊⣋
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣋
+                                                {
+                                                    output += '⣋';
+                                                }
+                                                else // ⣊
+                                                {
+                                                    output += '⣊';
+                                                }
+                                            }
+                                            else // ⣂⣃
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣃
+                                                {
+                                                    output += '⣃';
+                                                }
+                                                else // ⣂
+                                                {
+                                                    output += '⣂';
+                                                }
+                                            }
+                                        }
+                                        else // ⣀⣁⣈⣉
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⣈⣉
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⣉
+                                                {
+                                                    output += '⣉';
+                                                }
+                                                else // ⣈
+                                                {
+                                                    output += '⣈';
+                                                }
+                                            }
+                                            else // ⣀⣁
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) //⣁ 
+                                                {
+                                                    output += '⣁';
+                                                }
+                                                else // ⣀
+                                                {
+                                                    output += '⣀';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else // ⢀⢁⢂⢃⢄⢅⢆⢇⢈⢉⢊⢋⢌⢍⢎⢏⢐⢑⢒⢓⢔⢕⢖⢗⢘⢙⢚⢛⢜⢝⢞⢟⢠⢡⢢⢣⢤⢥⢦⢧⢨⢩⢪⢫⢬⢭⢮⢯⢰⢱⢲⢳⢴⢵⢶⢷⢸⢹⢺⢻⢼⢽⢾⢿
+                        {
+                            if (sigPix[cntr, cntr2 - 1]) // ⢠⢡⢢⢣⢤⢥⢦⢧⢨⢩⢪⢫⢬⢭⢮⢯⢰⢱⢲⢳⢴⢵⢶⢷⢸⢹⢺⢻⢼⢽⢾⢿
+                            {
+                                if (sigPix[cntr - 1, cntr2 - 1]) // ⢤⢥⢦⢧⢬⢭⢮⢯⢴⢵⢶⢷⢼⢽⢾⢿
+                                {
+                                    if (sigPix[cntr, cntr2 - 2]) // ⢴⢵⢶⢷⢼⢽⢾⢿
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 2]) // ⢶⢷⢾⢿
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⢾⢿
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢿
+                                                {
+                                                    output += '⢿';
+                                                }
+                                                else // ⢾
+                                                {
+                                                    output += '⢾';
+                                                }
+                                            }
+                                            else // ⢶⢷
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢷
+                                                {
+                                                    output += '⢷';
+                                                }
+                                                else // ⢶
+                                                {
+                                                    output += '⢶';
+                                                }
+                                            }
+                                        }
+                                        else // ⢴⢵⢼⢽
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⢼⢽
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢽
+                                                {
+                                                    output += '⢽';
+                                                }
+                                                else // ⢼
+                                                {
+                                                    output += '⢼';
+                                                }
+                                            }
+                                            else // ⢴⢵
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢵
+                                                {
+                                                    output += '⢵';
+                                                }
+                                                else // ⢴
+                                                {
+                                                    output += '⢴';
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else // ⢤⢥⢦⢧⢬⢭⢮⢯
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 2]) // ⢦⢧⢮⢯
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⢮⢯
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢯
+                                                {
+                                                    output += '⢯';
+                                                }
+                                                else // ⢮
+                                                {
+                                                    output += '⢮';
+                                                }
+                                            }
+                                            else // ⢦⢧
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢧
+                                                {
+                                                    output += '⢧';
+                                                }
+                                                else // ⢦
+                                                {
+                                                    output += '⢦';
+                                                }
+                                            }
+                                        }
+                                        else // ⢤⢥⢬⢭
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⢬⢭
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢭
+                                                {
+                                                    output += '⢭';
+                                                }
+                                                else // ⢬
+                                                {
+                                                    output += '⢬';
+                                                }
+                                            }
+                                            else // ⢤⢥
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢥
+                                                {
+                                                    output += '⢥';
+                                                }
+                                                else // ⢤
+                                                {
+                                                    output += '⢤';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                else // ⢠⢡⢢⢣⢨⢩⢪⢫⢰⢱⢲⢳⢸⢹⢺⢻
+                                {
+                                    if (sigPix[cntr, cntr2 - 2]) // ⢰⢱⢲⢳⢸⢹⢺⢻
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 2]) // ⢲⢳⢺⢻
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⢺⢻
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢻
+                                                {
+                                                    output += '⢻';
+                                                }
+                                                else
+                                                {
+                                                    output += '⢺';
+                                                }
+                                            }
+                                            else // ⢲⢳
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢳
+                                                {
+                                                    output += '⢳';
+                                                }
+                                                else // ⢲
+                                                {
+                                                    output += '⢲';
+                                                }
+                                            }
+                                        }
+                                        else // ⢰⢱⢸⢹
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⢸⢹
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢹
+                                                {
+                                                    output += '⢹';
+                                                }
+                                                else // ⢸
+                                                {
+                                                    output += '⢸';
+                                                }
+                                            }
+                                            else // ⢰⢱
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢱
+                                                {
+                                                    output += '⢱';
+                                                }
+                                                else // ⢰
+                                                {
+                                                    output += '⢰';
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else // ⢠⢡⢢⢣⢨⢩⢪⢫
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 2]) // ⢢⢣⢪⢫
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⢪⢫
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢫
+                                                {
+                                                    output += '⢫';
+                                                }
+                                                else // ⢪
+                                                {
+                                                    output += '⢪';
+                                                }
+                                            }
+                                            else // ⢢⢣
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢣
+                                                {
+                                                    output += '⢣';
+                                                }
+                                                else // ⢢
+                                                {
+                                                    output += '⢢';
+                                                }
+                                            }
+                                        }
+                                        else // ⢠⢡⢨⢩
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⢨⢩
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢩
+                                                {
+                                                    output += '⢩';
+                                                }
+                                                else // ⢨
+                                                {
+                                                    output += '⢨';
+                                                }
+                                            }
+                                            else // ⢠⢡
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢡
+                                                {
+                                                    output += '⢡';
+                                                }
+                                                else // ⢠
+                                                {
+                                                    output += '⢠';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else // ⢀⢁⢂⢃⢄⢅⢆⢇⢈⢉⢊⢋⢌⢍⢎⢏⢐⢑⢒⢓⢔⢕⢖⢗⢘⢙⢚⢛⢜⢝⢞⢟
+                            {
+                                if (sigPix[cntr - 1, cntr2 - 1]) // ⢄⢅⢆⢇⢌⢍⢎⢏⢔⢕⢖⢗⢜⢝⢞⢟
+                                {
+                                    if (sigPix[cntr, cntr2 - 2]) // ⢔⢕⢖⢗⢜⢝⢞⢟
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 2]) // ⢖⢗⢞⢟
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⢞⢟
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢟
+                                                {
+                                                    output += '⢟';
+                                                }
+                                                else // ⢞
+                                                {
+                                                    output += '⢞';
+                                                }
+                                            }
+                                            else // ⢖⢗
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢗
+                                                {
+                                                    output += '⢗';
+                                                }
+                                                else // ⢖
+                                                {
+                                                    output += '⢖';
+                                                }
+                                            }
+                                        }
+                                        else // ⢔⢕⢜⢝
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⢜⢝
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢝
+                                                {
+                                                    output += '⢝';
+                                                }
+                                                else // ⢜
+                                                {
+                                                    output += '⢜';
+                                                }
+                                            }
+                                            else // ⢔⢕
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢕
+                                                {
+                                                    output += '⢕';
+                                                }
+                                                else // ⢔
+                                                {
+                                                    output += '⢔';
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else // ⢄⢅⢆⢇⢌⢍⢎⢏
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 2]) // ⢆⢇⢎⢏
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⢎⢏
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢏
+                                                {
+                                                    output += '⢏';
+                                                }
+                                                else // ⢎
+                                                {
+                                                    output += '⢎';
+                                                }
+                                            }
+                                            else // ⢆⢇
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢇
+                                                {
+                                                    output += '⢇';
+                                                }
+                                                else // ⢆
+                                                {
+                                                    output += '⢆';
+                                                }
+                                            }
+                                        }
+                                        else // ⢄⢅⢌⢍
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⢌⢍
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢍
+                                                {
+                                                    output += '⢍';
+                                                }
+                                                else // ⢌
+                                                {
+                                                    output += '⢌';
+                                                }
+                                            }
+                                            else // ⢄⢅
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢅
+                                                {
+                                                    output += '⢅';
+                                                }
+                                                else // ⢄
+                                                {
+                                                    output += '⢄';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                else // ⢀⢁⢂⢃⢈⢉⢊⢋⢐⢑⢒⢓⢘⢙⢚⢛
+                                {
+                                    if (sigPix[cntr, cntr2 - 2]) // ⢐⢑⢒⢓⢘⢙⢚⢛
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 2]) // ⢒⢓⢚⢛
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⢚⢛
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢛
+                                                {
+                                                    output += '⢛';
+                                                }
+                                                else // ⢚
+                                                {
+                                                    output += '⢚';
+                                                }
+                                            }
+                                            else // ⢒⢓
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢓
+                                                {
+                                                    output += '⢓';
+                                                }
+                                                else // ⢒
+                                                {
+                                                    output += '⢒';
+                                                }
+                                            }
+                                        }
+                                        else // ⢐⢑⢘⢙
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⢘⢙
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢙
+                                                {
+                                                    output += '⢙';
+                                                }
+                                                else // ⢘
+                                                {
+                                                    output += '⢘';
+                                                }
+                                            }
+                                            else // ⢐⢑
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢑
+                                                {
+                                                    output += '⢑';
+                                                }
+                                                else // ⢐
+                                                {
+                                                    output += '⢐';
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else // ⢀⢁⢂⢃⢈⢉⢊⢋
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 2]) // ⢂⢃⢊⢋
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⢊⢋
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢋
+                                                {
+                                                    output += '⢋';
+                                                }
+                                                else // ⢊
+                                                {
+                                                    output += '⢊';
+                                                }
+                                            }
+                                            else // ⢂⢃
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢃
+                                                {
+                                                    output += '⢃';
+                                                }
+                                                else // ⢂
+                                                {
+                                                    output += '⢂';
+                                                }
+                                            }
+                                        }
+                                        else // ⢀⢁⢈⢉
+                                        {
+                                            if (sigPix[cntr, cntr2 - 3]) // ⢈⢉
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢉
+                                                {
+                                                    output += '⢉';
+                                                }
+                                                else // ⢈
+                                                {
+                                                    output += '⢈';
+                                                }
+                                            }
+                                            else // ⢀⢁
+                                            {
+                                                if (sigPix[cntr - 1, cntr2 - 3]) // ⢁
+                                                {
+                                                    output += '⢁';
+                                                }
+                                                else // ⢀
+                                                {
+                                                    output += '⢀';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else if (sigPix[cntr - 1, cntr2]) // ⡀⡁⡂⡃⡄⡅⡆⡇⡈⡉⡊⡋⡌⡍⡎⡏⡐⡑⡒⡓⡔⡕⡖⡗⡘⡙⡚⡛⡜⡝⡞⡟⡠⡡⡢⡣⡤⡥⡦⡧⡨⡩⡪⡫⡬⡭⡮⡯⡰⡱⡲⡳⡴⡵⡶⡷⡸⡹⡺⡻⡼⡽⡾⡿
+                    {
+                        if (sigPix[cntr, cntr2 - 1]) // ⡠⡡⡢⡣⡤⡥⡦⡧⡨⡩⡪⡫⡬⡭⡮⡯⡰⡱⡲⡳⡴⡵⡶⡷⡸⡹⡺⡻⡼⡽⡾⡿
+                        {
+                            if (sigPix[cntr - 1, cntr2 - 1]) // ⡤⡥⡦⡧⡬⡭⡮⡯⡴⡵⡶⡷⡼⡽⡾⡿
+                            {
+                                if (sigPix[cntr, cntr2 - 2]) // ⡴⡵⡶⡷⡼⡽⡾⡿
+                                {
+                                    if (sigPix[cntr - 1, cntr2 - 2]) // ⡶⡷⡾⡿
+                                    {
+                                        if (sigPix[cntr, cntr2 - 3]) // ⡾⡿
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡿
+                                            {
+                                                output += '⡿';
+                                            }
+                                            else // ⡾
+                                            {
+                                                output += '⡾';
+                                            }
+                                        }
+                                        else // ⡶⡷
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡷
+                                            {
+                                                output += '⡷';
+                                            }
+                                            else // ⡶
+                                            {
+                                                output += '⡶';
+                                            }
+                                        }
+                                    }
+                                    else // ⡴⡵⡼⡽
+                                    {
+                                        if (sigPix[cntr, cntr2 - 3]) // ⡼⡽
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡽
+                                            {
+                                                output += '⡽';
+                                            }
+                                            else // ⡼
+                                            {
+                                                output += '⡼';
+                                            }
+                                        }
+                                        else // ⡴⡵
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡵
+                                            {
+                                                output += '⡵';
+                                            }
+                                            else // ⡴
+                                            {
+                                                output += '⡴';
+                                            }
+                                        }
+                                    }
+                                }
+                                else // ⡤⡥⡦⡧⡬⡭⡮⡯
+                                {
+                                    if (sigPix[cntr - 1, cntr2 - 2]) // ⡦⡧⡮⡯
+                                    {
+                                        if (sigPix[cntr, cntr2 - 3]) // ⡮⡯
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡯
+                                            {
+                                                output += '⡯';
+                                            }
+                                            else // ⡮
+                                            {
+                                                output += '⡮';
+                                            }
+                                        }
+                                        else // ⡦⡧
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡧
+                                            {
+                                                output += '⡧';
+                                            }
+                                            else // ⡦
+                                            {
+                                                output += '⡦';
+                                            }
+                                        }
+                                    }
+                                    else // ⡤⡥⡬⡭
+                                    {
+                                        if (sigPix[cntr, cntr2 - 3]) // ⡬⡭
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡭
+                                            {
+                                                output += '⡭';
+                                            }
+                                            else // ⡬
+                                            {
+                                                output += '⡬';
+                                            }
+                                        }
+                                        else // ⡤⡥
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡥
+                                            {
+                                                output += '⡥';
+                                            }
+                                            else // ⡤
+                                            {
+                                                output += '⡤';
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else // ⡠⡡⡢⡣⡨⡩⡪⡫⡰⡱⡲⡳⡸⡹⡺⡻
+                            {
+                                if (sigPix[cntr, cntr2 - 2]) // ⡰⡱⡲⡳⡸⡹⡺⡻
+                                {
+                                    if (sigPix[cntr - 1, cntr2 - 2]) // ⡲⡳⡺⡻
+                                    {
+                                        if (sigPix[cntr, cntr2 - 3]) // ⡺⡻
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡻
+                                            {
+                                                output += '⡻';
+                                            }
+                                            else // ⡺
+                                            {
+                                                output += '⡺';
+                                            }
+                                        }
+                                        else // ⡲⡳
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡳
+                                            {
+                                                output += '⡳';
+                                            }
+                                            else // ⡲
+                                            {
+                                                output += '⡲';
+                                            }
+                                        }
+                                    }
+                                    else // ⡰⡱⡸⡹
+                                    {
+                                        if (sigPix[cntr, cntr2 - 3]) // ⡸⡹
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡹
+                                            {
+                                                output += '⡹';
+                                            }
+                                            else // ⡸
+                                            {
+                                                output += '⡸';
+                                            }
+                                        }
+                                        else // ⡰⡱
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡱
+                                            {
+                                                output += '⡱';
+                                            }
+                                            else // ⡰
+                                            {
+                                                output += '⡰';
+                                            }
+                                        }
+                                    }
+                                }
+                                else // ⡠⡡⡢⡣⡨⡩⡪⡫
+                                {
+                                    if (sigPix[cntr - 1, cntr2 - 2]) // ⡢⡣⡪⡫
+                                    {
+                                        if (sigPix[cntr, cntr2 - 3]) // ⡪⡫
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡫
+                                            {
+                                                output += '⡫';
+                                            }
+                                            else // ⡪
+                                            {
+                                                output += '⡪';
+                                            }
+                                        }
+                                        else // ⡢⡣
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡣
+                                            {
+                                                output += '⡣';
+                                            }
+                                            else // ⡢
+                                            {
+                                                output += '⡢';
+                                            }
+                                        }
+                                    }
+                                    else // ⡠⡡⡨⡩
+                                    {
+                                        if (sigPix[cntr, cntr2 - 3]) // ⡨⡩
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡩
+                                            {
+                                                output += '⡩';
+                                            }
+                                            else // ⡨
+                                            {
+                                                output += '⡨';
+                                            }
+                                        }
+                                        else // ⡠⡡
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡡
+                                            {
+                                                output += '⡡';
+                                            }
+                                            else // ⡠
+                                            {
+                                                output += '⡠';
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else // ⡀⡁⡂⡃⡄⡅⡆⡇⡈⡉⡊⡋⡌⡍⡎⡏⡐⡑⡒⡓⡔⡕⡖⡗⡘⡙⡚⡛⡜⡝⡞⡟
+                        {
+                            if (sigPix[cntr - 1, cntr2 - 1]) // ⡄⡅⡆⡇⡌⡍⡎⡏⡔⡕⡖⡗⡜⡝⡞⡟
+                            {
+                                if (sigPix[cntr, cntr2 - 2]) // ⡔⡕⡖⡗⡜⡝⡞⡟
+                                {
+                                    if (sigPix[cntr - 1, cntr2 - 2]) // ⡖⡗⡞⡟
+                                    {
+                                        if (sigPix[cntr, cntr2 - 3]) // ⡞⡟
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡟
+                                            {
+                                                output += '⡟';
+                                            }
+                                            else // ⡞
+                                            {
+                                                output += '⡞';
+                                            }
+                                        }
+                                        else // ⡖⡗
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡗
+                                            {
+                                                output += '⡗';
+                                            }
+                                            else // ⡖
+                                            {
+                                                output += '⡖';
+                                            }
+                                        }
+                                    }
+                                    else // ⡔⡕⡜⡝
+                                    {
+                                        if (sigPix[cntr, cntr2 - 3]) // ⡜⡝
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡝
+                                            {
+                                                output += '⡝';
+                                            }
+                                            else // ⡜
+                                            {
+                                                output += '⡜';
+                                            }
+                                        }
+                                        else // ⡔⡕
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡕
+                                            {
+                                                output += '⡕';
+                                            }
+                                            else // ⡔
+                                            {
+                                                output += '⡔';
+                                            }
+                                        }
+                                    }
+                                }
+                                else // ⡄⡅⡆⡇⡌⡍⡎⡏
+                                {
+                                    if (sigPix[cntr - 1, cntr2 - 2]) // ⡆⡇⡎⡏
+                                    {
+                                        if (sigPix[cntr, cntr2 - 3]) // ⡎⡏
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡏
+                                            {
+                                                output += '⡏';
+                                            }
+                                            else // ⡎
+                                            {
+                                                output += '⡎';
+                                            }
+                                        }
+                                        else // ⡆⡇
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡇
+                                            {
+                                                output += '⡇';
+                                            }
+                                            else // ⡆
+                                            {
+                                                output += '⡆';
+                                            }
+                                        }
+                                    }
+                                    else // ⡄⡅⡌⡍
+                                    {
+                                        if (sigPix[cntr, cntr2 - 3]) // ⡌⡍
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡍
+                                            {
+                                                output += '⡍';
+                                            }
+                                            else // ⡌
+                                            {
+                                                output += '⡌';
+                                            }
+                                        }
+                                        else // ⡄⡅
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡅
+                                            {
+                                                output += '⡅';
+                                            }
+                                            else // ⡄
+                                            {
+                                                output += '⡄';
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else // ⡀⡁⡂⡃⡈⡉⡊⡋⡐⡑⡒⡓⡘⡙⡚⡛
+                            {
+                                if (sigPix[cntr, cntr2 - 2]) // ⡐⡑⡒⡓⡘⡙⡚⡛
+                                {
+                                    if (sigPix[cntr - 1, cntr2 - 2]) // ⡒⡓⡚⡛
+                                    {
+                                        if (sigPix[cntr, cntr2 - 3]) // ⡚⡛
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡛
+                                            {
+                                                output += '⡛';
+                                            }
+                                            else // ⡚
+                                            {
+                                                output += '⡚';
+                                            }
+                                        }
+                                        else // ⡒⡓
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡓
+                                            {
+                                                output += '⡓';
+                                            }
+                                            else // ⡒
+                                            {
+                                                output += '⡒';
+                                            }
+                                        }
+                                    }
+                                    else // ⡐⡑⡘⡙
+                                    {
+                                        if (sigPix[cntr, cntr2 - 3]) // ⡘⡙
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡙
+                                            {
+                                                output += '⡙';
+                                            }
+                                            else // ⡘
+                                            {
+                                                output += '⡘';
+                                            }
+                                        }
+                                        else // ⡐⡑
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡑
+                                            {
+                                                output += '⡑';
+                                            }
+                                            else // ⡐
+                                            {
+                                                output += '⡐';
+                                            }
+                                        }
+                                    }
+                                }
+                                else // ⡀⡁⡂⡃⡈⡉⡊⡋
+                                {
+                                    if (sigPix[cntr - 1, cntr2 - 2]) // ⡂⡃⡊⡋
+                                    {
+                                        if (sigPix[cntr, cntr2 - 3]) // ⡊⡋
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡋
+                                            {
+                                                output += '⡋';
+                                            }
+                                            else // ⡊
+                                            {
+                                                output += '⡊';
+                                            }
+                                        }
+                                        else // ⡂⡃
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡃
+                                            {
+                                                output += '⡃';
+                                            }
+                                            else // ⡂
+                                            {
+                                                output += '⡂';
+                                            }
+                                        }
+                                    }
+                                    else // ⡀⡁⡈⡉
+                                    {
+                                        if (sigPix[cntr, cntr2 - 3]) // ⡈⡉
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡉
+                                            {
+                                                output += '⡉';
+                                            }
+                                            else // ⡈
+                                            {
+                                                output += '⡈';
+                                            }
+                                        }
+                                        else // ⡀⡁
+                                        {
+                                            if (sigPix[cntr - 1, cntr2 - 3]) // ⡁
+                                            {
+                                                output += '⡁';
+                                            }
+                                            else // ⡀
+                                            {
+                                                output += '⡀';
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } // ⠀⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿
+                    else if (sigPix[cntr, cntr2 - 1]) // ⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿
+                    {
+                        if (sigPix[cntr - 1, cntr2 - 1]) // ⠤⠥⠦⠧⠬⠭⠮⠯⠴⠵⠶⠷⠼⠽⠾⠿
+                        {
+                            if (sigPix[cntr, cntr2 - 2]) // ⠴⠵⠶⠷⠼⠽⠾⠿
+                            {
+                                if (sigPix[cntr - 1, cntr2 - 2]) // ⠶⠷⠾⠿
+                                {
+                                    if (sigPix[cntr, cntr2 - 3]) // ⠾⠿
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠿
+                                        {
+                                            output += '⠿';
+                                        }
+                                        else // ⠾
+                                        {
+                                            output += '⠾';
+                                        }
+                                    }
+                                    else // ⠶⠷
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠷
+                                        {
+                                            output += '⠷';
+                                        }
+                                        else // ⠶
+                                        {
+                                            output += '⠶';
+                                        }
+                                    }
+                                }
+                                else // ⠴⠵⠼⠽
+                                {
+                                    if (sigPix[cntr, cntr2 - 3]) // ⠼⠽
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠽
+                                        {
+                                            output += '⠽';
+                                        }
+                                        else // ⠼
+                                        {
+                                            output += '⠼';
+                                        }
+                                    }
+                                    else // ⠴⠵
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠵
+                                        {
+                                            output += '⠵';
+                                        }
+                                        else // ⠴
+                                        {
+                                            output += '⠴';
+                                        }
+                                    }
+                                }
+                            }
+                            else // ⠤⠥⠦⠧⠬⠭⠮⠯
+                            {
+                                if (sigPix[cntr - 1, cntr2 - 2]) // ⠦⠧⠮⠯
+                                {
+                                    if (sigPix[cntr, cntr2 - 3]) // ⠮⠯
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠯
+                                        {
+                                            output += '⠯';
+                                        }
+                                        else // ⠮
+                                        {
+                                            output += '⠮';
+                                        }
+                                    }
+                                    else // ⠦⠧
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠧
+                                        {
+                                            output += '⠧';
+                                        }
+                                        else // ⠦
+                                        {
+                                            output += '⠦';
+                                        }
+                                    }
+                                }
+                                else // ⠤⠥⠬⠭
+                                {
+                                    if (sigPix[cntr, cntr2 - 3]) // ⠬⠭
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠭
+                                        {
+                                            output += '⠭';
+                                        }
+                                        else // ⠬
+                                        {
+                                            output += '⠬';
+                                        }
+                                    }
+                                    else // ⠤⠥
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠥
+                                        {
+                                            output += '⠥';
+                                        }
+                                        else // ⠤
+                                        {
+                                            output += '⠤';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else // ⠠⠡⠢⠣⠨⠩⠪⠫⠰⠱⠲⠳⠸⠹⠺⠻
+                        {
+                            if (sigPix[cntr, cntr2 - 2]) // ⠰⠱⠲⠳⠸⠹⠺⠻
+                            {
+                                if (sigPix[cntr - 1, cntr2 - 2]) // ⠲⠳⠺⠻
+                                {
+                                    if (sigPix[cntr, cntr2 - 3]) // ⠺⠻
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠻
+                                        {
+                                            output += '⠻';
+                                        }
+                                        else // ⠺
+                                        {
+                                            output += '⠺';
+                                        }
+                                    }
+                                    else // ⠲⠳
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠳
+                                        {
+                                            output += '⠳';
+                                        }
+                                        else // ⠲
+                                        {
+                                            output += '⠲';
+                                        }
+                                    }
+                                }
+                                else // ⠰⠱⠸⠹
+                                {
+                                    if (sigPix[cntr, cntr2 - 3]) // ⠸⠹
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠹
+                                        {
+                                            output += '⠹';
+                                        }
+                                        else // ⠸
+                                        {
+                                            output += '⠸';
+                                        }
+                                    }
+                                    else // ⠰⠱
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠱
+                                        {
+                                            output += '⠱';
+                                        }
+                                        else // ⠰
+                                        {
+                                            output += '⠰';
+                                        }
+                                    }
+                                }
+                            }
+                            else // ⠠⠡⠢⠣⠨⠩⠪⠫
+                            {
+                                if (sigPix[cntr - 1, cntr2 - 2]) // ⠢⠣⠪⠫
+                                {
+                                    if (sigPix[cntr, cntr2 - 3]) // ⠪⠫
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠫
+                                        {
+                                            output += '⠫';
+                                        }
+                                        else // ⠪
+                                        {
+                                            output += '⠪';
+                                        }
+                                    }
+                                    else // ⠢⠣
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠣
+                                        {
+                                            output += '⠣';
+                                        }
+                                        else // ⠢
+                                        {
+                                            output += '⠢';
+                                        }
+                                    }
+                                }
+                                else // ⠠⠡⠨⠩
+                                {
+                                    if (sigPix[cntr, cntr2 - 3]) // ⠨⠩
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠩
+                                        {
+                                            output += '⠩';
+                                        }
+                                        else // ⠨
+                                        {
+                                            output += '⠨';
+                                        }
+                                    }
+                                    else // ⠠⠡
+                                    {
+                                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠡
+                                        {
+                                            output += '⠡';
+                                        }
+                                        else // ⠠
+                                        {
+                                            output += '⠠';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } // ⠀⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟
+                    else if (sigPix[cntr - 1, cntr2 - 1]) // ⠄⠅⠆⠇⠌⠍⠎⠏⠔⠕⠖⠗⠜⠝⠞⠟
+                    {
+                        if (sigPix[cntr, cntr2 - 2]) // ⠔⠕⠖⠗⠜⠝⠞⠟
+                        {
+                            if (sigPix[cntr - 1, cntr2 - 2]) // ⠖⠗⠞⠟
+                            {
+                                if (sigPix[cntr, cntr2 - 3]) // ⠞⠟
+                                {
+                                    if (sigPix[cntr - 1, cntr2 - 3]) // ⠟
+                                    {
+                                        output += '⠟';
+                                    }
+                                    else // ⠞
+                                    {
+                                        output += '⠞';
+                                    }
+                                }
+                                else // ⠖⠗
+                                {
+                                    if (sigPix[cntr - 1, cntr - 3]) // ⠗
+                                    {
+                                        output += '⠗';
+                                    }
+                                    else // ⠖
+                                    {
+                                        output += '⠖';
+                                    }
+                                }
+                            }
+                            else // ⠔⠕⠜⠝
+                            {
+                                if (sigPix[cntr, cntr2 - 3]) // ⠜⠝
+                                {
+                                    if (sigPix[cntr - 1, cntr2 - 3]) // ⠜
+                                    {
+                                        output += '⠜';
+                                    }
+                                    else // ⠝
+                                    {
+                                        output += '⠝';
+                                    }
+                                }
+                                else // ⠔⠕
+                                {
+                                    if (sigPix[cntr, cntr2 - 3]) // ⠕
+                                    {
+                                        output += '⠕';
+                                    }
+                                    else // ⠔
+                                    {
+                                        output += '⠔';
+                                    }
+                                }
+                            }
+                        }
+                        else // ⠄⠅⠆⠇⠌⠍⠎⠏
+                        {
+                            if (sigPix[cntr - 1, cntr2 - 2]) // ⠆⠇⠎⠏
+                            {
+                                if (sigPix[cntr, cntr2 - 3]) // ⠎⠏
+                                {
+                                    if (sigPix[cntr - 1, cntr2 - 3]) // ⠏
+                                    {
+                                        output += '⠏';
+                                    }
+                                    else // ⠎
+                                    {
+                                        output += '⠎';
+                                    }
+                                }
+                                else // ⠆⠇
+                                {
+                                    if (sigPix[cntr - 1, cntr2 - 3]) // ⠇
+                                    {
+                                        output += '⠇';
+                                    }
+                                    else // ⠆
+                                    {
+                                        output += '⠆';
+                                    }
+                                }
+                            }
+                            else // ⠄⠅⠌⠍
+                            {
+                                if (sigPix[cntr, cntr2 - 3]) // ⠌⠍
+                                {
+                                    if (sigPix[cntr - 1, cntr2 - 3]) // ⠍
+                                    {
+                                        output += '⠍';
+                                    }
+                                    else // ⠌
+                                    {
+                                        output += '⠌';
+                                    }
+                                }
+                                else // ⠄⠅
+                                {
+                                    if (sigPix[cntr, cntr2 - 3]) // ⠅
+                                    {
+                                        output += '⠅';
+                                    }
+                                    else // ⠄
+                                    {
+                                        output += '⠄';
+                                    }
+                                }
+                            }
+                        }
+                    } // ⠀⠁⠂⠃⠈⠉⠊⠋⠐⠑⠒⠓⠘⠙⠚⠛
+                    else if (sigPix[cntr, cntr2 - 2]) // ⠐⠑⠒⠓⠘⠙⠚⠛
+                    {
+                        if (sigPix[cntr - 1, cntr2 - 2]) // ⠒⠓⠚⠛
+                        {
+                            if (sigPix[cntr, cntr2 - 3]) // ⠚⠛
+                            {
+                                if (sigPix[cntr - 1, cntr2 - 3]) // ⠛
+                                {
+                                    output += '⠛';
+                                }
+                                else // ⠚
+                                {
+                                    output += '⠚';
+                                }
+                            }
+                            else // ⠒⠓
+                            {
+                                if (sigPix[cntr - 1, cntr2 - 3]) // ⠓
+                                {
+                                    output += '⠓';
+                                }
+                                else // ⠒
+                                {
+                                    output += '⠒';
+                                }
+                            }
+                        }
+                        else // ⠐⠑⠘⠙
+                        {
+                            if (sigPix[cntr, cntr2 - 3]) // ⠘⠙
+                            {
+                                if (sigPix[cntr - 1, cntr2 - 3]) // ⠙
+                                {
+                                    output += '⠙';
+                                }
+                                else // ⠘
+                                {
+                                    output += '⠘';
+                                }
+                            }
+                            else // ⠐⠑
+                            {
+                                if (sigPix[cntr - 1, cntr2 - 3]) // ⠑
+                                {
+                                    output += '⠑';
+                                }
+                                else // ⠐
+                                {
+                                    output += '⠐';
+                                }
+                            }
+                        }
+                    } // ⠀⠁⠂⠃⠈⠉⠊⠋
+                    else if (sigPix[cntr - 1, cntr2 - 2]) // ⠂⠃⠊⠋
+                    {
+                        if (sigPix[cntr, cntr2 - 3]) // ⠊⠋
+                        {
+                            if (sigPix[cntr - 1, cntr2 - 3]) // ⠋
+                            {
+                                output += '⠋';
+                            }
+                            else // ⠃
+                            {
+                                output += '⠃';
+                            }
+                        }
+                        else // ⠂
+                        {
+                            output += '⠂';
+                        }
+                    } // ⠀⠁⠈⠉
+                    else if (sigPix[cntr, cntr2 - 3]) // ⠈⠉
+                    {
+                        if (sigPix[cntr - 1, cntr2 - 3]) // ⠉
+                        {
+                            output += '⠉';
+                        }
+                        else // ⠈
+                        {
+                            output += '⠈';
+                        }
+                    } // ⠀⠁
+                    else if (sigPix[cntr - 1, cntr2 - 3]) // ⠁
+                    {
+                        output += '⠁';
+                    } // ⠀
+                    else // ⠀
+                    {
+                        output += '⠀';
+                    }
+                    if (cntr == boundsX - 2) // Right side of image needs endline character
+                    {
+                        output += "\n";
+                    }
+                }
+            }
+            return output;
         }
         #endregion
     }
