@@ -20,10 +20,7 @@ using Discord.WebSocket;
 using Discord.Rest;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Microsoft.Extensions.DependencyInjection;
 using System.Net;
-using System.Reflection;
 using System.Threading.Tasks;
 using System.IO;
 using System.Drawing;
@@ -506,9 +503,9 @@ namespace Jellyfish.Modules
                         }
                         else
                         {
+                            await Task.Delay(1500);
                             await ReplyAsync(output);
-                            await CountdownAsync(10);
-
+                            await CountdownAsync(15);
                         }
                     }
                 }
@@ -524,23 +521,29 @@ namespace Jellyfish.Modules
         // Countdown Timer
         private async Task CountdownAsync(int time)
         {
-            Timer timer = new Timer(1000);
+            Timer timer = new Timer(5000);
 
             // The message that needs to be edited
-            var Message = await Context.Channel.SendMessageAsync("Time remaining: 15 seconds");
+            await Context.Channel.TriggerTypingAsync();
+            await Task.Delay(1500);
+            var Message = await Context.Channel.SendMessageAsync("Time remaining: " + time + " seconds");
 
             timer.Start();
             timer.Elapsed += (sender, e) => ElapsedEventHandler(sender, e, Message);
         }
 
         // Event handler for elapsed time (Who's That Pokemon?)
+        // Can be modified to call whichever command needs a timer via Message parameter if needed
         private async void ElapsedEventHandler(object sender, ElapsedEventArgs e, RestUserMessage Message)
         {
             Timer timer = (Timer)sender;
             string time = Message.Content.Substring(16, 2);
-            if (time == "10" || time == "11" || time == "12" || time == "13" || time == "14" || time == "15")
-                await Message.ModifyAsync(msg2 => msg2.Content = "Time remaining: " + (Convert.ToInt32(Message.Content.Substring(16, 2)) - 1) + " seconds");
-            else if (Message.Content.Substring(16, 1) == "0")
+            if (time == "10" || time == "15" || time == "20")
+            {
+                //timer.Interval = 5000;
+                await Message.ModifyAsync(msg2 => msg2.Content = "Time remaining: " + (Convert.ToInt32(Message.Content.Substring(16, 2)) - 5) + " seconds");
+            }
+            else if (Message.Content.Substring(16, 1) == "5")
             {
                 timer.Stop();
                 await Message.ModifyAsync(msg2 => msg2.Content = "Time\'s up!");
@@ -550,18 +553,20 @@ namespace Jellyfish.Modules
                 IReadOnlyCollection<IMessage> messages = await guessesEnum.ElementAt(1);
                 Boolean originReached = false;
                 Boolean guessedIt = false;
-                for(int x = messages.Count - 1; x > 0; x--)
+                for (int x = messages.Count - 1; x > 0; x--)
                 {
-                    if(messages.ElementAt(x) == null)
+                    if (messages.ElementAt(x) == null)
                     {
                         continue;
                     }
-                    if(messages.ElementAt(x).Id == Message.Id)
+                    if (messages.ElementAt(x).Id == Message.Id)
                     {
                         originReached = true;
                     }
                     else if (originReached && !messages.ElementAt(x).Author.IsBot && messages.ElementAt(x).Content.ToLower().Contains(pokemonName))
                     {
+                        await Context.Channel.TriggerTypingAsync();
+                        await Task.Delay(1500);
                         await ReplyAsync("Congratulations, you got it right first " + messages.ElementAt(x).Author.Mention + "!");
                         guessedIt = true;
                         break;
@@ -569,12 +574,10 @@ namespace Jellyfish.Modules
                 }
                 if (!guessedIt)
                 {
+                    await Context.Channel.TriggerTypingAsync();
+                    await Task.Delay(1500);
                     await ReplyAsync("Nobody guessed it! Better luck next time ~");
                 }
-            }
-            else
-            {
-                await Message.ModifyAsync(msg2 => msg2.Content = "Time remaining: " + (Convert.ToInt32(Message.Content.Substring(16, 1)) - 1) + " seconds");
             }
         }
         #endregion
