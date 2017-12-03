@@ -22,6 +22,7 @@ namespace Jellyfish
 {
     class Program
     {
+        public static List<string> pokemon = new List<string>();
         static void Main(string[] args) => new Program().RunBotAsync().GetAwaiter().GetResult();
 
         private DiscordSocketClient _client;
@@ -48,8 +49,9 @@ namespace Jellyfish
             await _client.LoginAsync(TokenType.Bot, botToken);
 
             await _client.StartAsync();
-
+            await LoadObjects();
             await Task.Delay(-1);
+            
         }
 
         private Task Log(LogMessage arg)
@@ -83,10 +85,70 @@ namespace Jellyfish
                 if (!result.IsSuccess)
                     Console.WriteLine(result.ErrorReason);
 
-                await Task.Delay(1500);
-                await arg.DeleteAsync();
+                if (result.IsSuccess)
+                {
+                    await Task.Delay(1500);
+                    await arg.DeleteAsync();
+                }
             }
 
+        }
+
+        private async Task LoadObjects()
+        {
+            // Load objects
+            System.IO.StreamReader file = new System.IO.StreamReader("pokemonList.txt");
+            int counter = 0;
+            string line;
+            while ((line = file.ReadLine()) != null)
+            {
+                line = line.ToLower();
+                if(line == "generation I")
+                {
+                    // Add code later
+                }
+                else if (line == "generation II")
+                {
+                    // Add code later
+                }
+                else if (line == "generation III")
+                {
+                    // Add code later
+                }
+                else if (line == "generation IV")
+                {
+                    // Add code later
+                }
+                else if (line == "generation V")
+                {
+                    // Add code later
+                }
+                else if (line == "generation VI")
+                {
+                    // Add code later
+                }
+                else if (line == "generation VII")
+                {
+                    // Add code later
+                }
+                else if (line == "generation VIII")
+                {
+                    // Add code later
+                }
+                if (!pokemon.Contains(line))
+                {
+                    if (line.Length >= 10 && line.Substring(0, 10) == "generation")
+                    {
+                        // FIEND
+                    }
+                    else
+                    {
+                        pokemon.Add(line);
+                    }
+                }
+                counter++;
+            }
+            file.Close();
         }
     }
 }
