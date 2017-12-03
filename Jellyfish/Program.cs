@@ -97,6 +97,7 @@ namespace Jellyfish
         private async Task LoadObjects()
         {
             // Load objects
+            await _client.SetGameAsync("&help for enlightenment!");
             System.IO.StreamReader file = new System.IO.StreamReader("pokemonList.txt");
             int counter = 0;
             string line;

@@ -6,10 +6,12 @@
  * Version: 1.0
  * Completion date: N/A
  * TODO: Add logs for each command's usage, and also count the following variables:
- *      -Who's That Pokemon wins
- *      -Help calls (lol)
- *      -89 calls (of course)
- *      -Times rolled an 89 with roll
+ *      -"Who's That Pokemon" wins
+ *      -"Help" calls (lol)
+ *      -"89" calls (of course)
+ *      -Times rolled an 89 with "roll"
+ *      Also, add formatting to help section! (@Ryan)
+ *      
  */
 
 using Discord;
@@ -2197,7 +2199,7 @@ namespace Jellyfish.Modules
                                 }
                                 else // ⠖⠗
                                 {
-                                    if (sigPix[cntr - 1, cntr - 3]) // ⠗
+                                    if (sigPix[cntr - 1, cntr2 - 3]) // ⠗
                                     {
                                         output += '⠗';
                                     }
