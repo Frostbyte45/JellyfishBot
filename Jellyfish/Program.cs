@@ -13,10 +13,10 @@ using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Reflection;
 using System.Threading.Tasks;
+// using System.Linq; // Uncomment this if needed
+// using System.Text; // Uncomment this if needed
 
 namespace Jellyfish
 {
@@ -97,7 +97,7 @@ namespace Jellyfish
         private async Task LoadObjects()
         {
             // Load objects
-            await _client.SetGameAsync("&help for enlightenment");
+            await _client.SetGameAsync("&help to transcend!");
             System.IO.StreamReader file = new System.IO.StreamReader("pokemonList.txt");
             int counter = 0;
             string line;

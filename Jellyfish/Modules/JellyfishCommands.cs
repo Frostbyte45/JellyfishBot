@@ -5,13 +5,6 @@
  * Usage: DO NOT USE CODE WITHOUT CREDIT TO AUTHORS. The toText command took a lot of time to write and is Nia's side-project; credit is due.
  * Version: 1.0
  * Completion date: N/A
- * TODO: Add logs for each command's usage, and also count the following variables:
- *      -"Who's That Pokemon" wins
- *      -"Help" calls (lol)
- *      -"89" calls (of course)
- *      -Times rolled an 89 with "roll"
- *      Also, add formatting to help section! (@Ryan)
- *      
  */
 
 using Discord;
@@ -31,7 +24,26 @@ namespace Jellyfish.Modules
 {
     public class JellyfishCommands : ModuleBase<SocketCommandContext>
     {
+        #region TODO
+        /* TODO
+         * Add logs for each command's usage, and also count the following variables:
+            -"Who's That Pokemon" wins
+            -"Help" calls (lol)
+            -"89" calls (of course)
+            -Times rolled an 89 with "roll"
+        * Also, add formatting to help section! (@Ryan)
+        * Add Blackjack! And maybe other card games
+        * Add Card Game BGM option that allows users to listen to this:https://www.youtube.com/watch?v=6sjP1rSqf1w&list=PLR_Wo4dgp0sjwLUBfuOdXDDE9SYGHRJsl&index=67
+            -While playing Blackjack or other card games, in the music channel
+        * Add remind command that uses some sort of event handler and the datetime object (maybe Timer?)
+        * 
+         */
+        #endregion
+        
         public String pokemonName;
+
+        #region Generic Bot Commands
+
         #region help
         [Command("help")]
         public async Task HelpAsync()
@@ -149,46 +161,14 @@ namespace Jellyfish.Modules
         }
         #endregion
 
-        #region goodnight
-        [Command("goodnight")]
-        public async Task GoodnightAsync()
+        #region echo
+        [Command("echo")]
+        public async Task EchoAsync([Remainder] string stuffToEcho)
         {
             await Context.Channel.TriggerTypingAsync();
-            await ReplyAsync(Context.User.Mention + ", May the 89 jellyfish gods bless your dreams with their presence.");
-        }
+            stuffToEcho = "*" + stuffToEcho + "*";
 
-        [Command("goodnight")]
-        public async Task GoodnightAsync(SocketUser user)
-        {
-            await Context.Channel.TriggerTypingAsync();
-            await ReplyAsync(user.Mention + ", May the 89 jellyfish gods bless your dreams with their presence.");
-        }
-        #endregion
-
-        #region 89
-        [Command("89")]
-        public async Task EightyNineAsync()
-        {
-            await Context.Channel.TriggerTypingAsync();
-            await ReplyAsync("e  i  g  h  t  y  n  i  n  e          e  i  g  h  t  y  n  i  n  e\n" +
-                             "i                                   i           i                                  i\n" +
-                             "g                                 g          g                                 g\n" +
-                             "h                                 h          h                                 h\n" +
-                             "t                                  t           t                                  t\n" +
-                             "y                                 y          y                                 y\n" +
-                             "n                                 n         n                                 n\n" +
-                             "i                                   i          i                                   i\n" +
-                             "n                                 n         n                                 n\n" +
-                             "e  i  g  h  t  y  n  i  n  e         e  i  g  h  t  y  n  i  n  e\n" +
-                             "i                                   i                                             i\n" +
-                             "g                                 g                                            g\n" +
-                             "h                                 h                                            h\n" +
-                             "t                                  t                                             t\n" +
-                             "y                                 y                                            y\n" +
-                             "n                                 n                                            n\n" +
-                             "i                                   i                                             i\n" +
-                             "n                                 n                                            n\n" +
-                             "e  i  g  h  t  y  n  i  n  e                                             e");
+            await ReplyAsync(stuffToEcho/* + "\n" + stuffToEcho + "\n" + stuffToEcho*/);
         }
         #endregion
 
@@ -204,17 +184,6 @@ namespace Jellyfish.Modules
                 .WithColor(myRgbColor);
 
             await ReplyAsync("", false, builder.Build());
-        }
-        #endregion
-
-        #region echo
-        [Command("echo")]
-        public async Task EchoAsync([Remainder] string stuffToEcho)
-        {
-            await Context.Channel.TriggerTypingAsync();
-            stuffToEcho = "*" + stuffToEcho + "*";
-
-            await ReplyAsync(stuffToEcho/* + "\n" + stuffToEcho + "\n" + stuffToEcho*/);
         }
         #endregion
 
@@ -261,6 +230,53 @@ namespace Jellyfish.Modules
         }
         #endregion
 
+        #endregion
+
+        #region Memes
+
+        #region goodnight
+        [Command("goodnight")]
+        public async Task GoodnightAsync()
+        {
+            await Context.Channel.TriggerTypingAsync();
+            await ReplyAsync(Context.User.Mention + ", May the 89 jellyfish gods bless your dreams with their presence.");
+        }
+
+        [Command("goodnight")]
+        public async Task GoodnightAsync(SocketUser user)
+        {
+            await Context.Channel.TriggerTypingAsync();
+            await ReplyAsync(user.Mention + ", May the 89 jellyfish gods bless your dreams with their presence.");
+        }
+        #endregion
+
+        #region 89
+        [Command("89")]
+        public async Task EightyNineAsync()
+        {
+            await Context.Channel.TriggerTypingAsync();
+            await ReplyAsync("e  i  g  h  t  y  n  i  n  e          e  i  g  h  t  y  n  i  n  e\n" +
+                             "i                                   i           i                                  i\n" +
+                             "g                                 g          g                                 g\n" +
+                             "h                                 h          h                                 h\n" +
+                             "t                                  t           t                                  t\n" +
+                             "y                                 y          y                                 y\n" +
+                             "n                                 n         n                                 n\n" +
+                             "i                                   i          i                                   i\n" +
+                             "n                                 n         n                                 n\n" +
+                             "e  i  g  h  t  y  n  i  n  e         e  i  g  h  t  y  n  i  n  e\n" +
+                             "i                                   i                                             i\n" +
+                             "g                                 g                                            g\n" +
+                             "h                                 h                                            h\n" +
+                             "t                                  t                                             t\n" +
+                             "y                                 y                                            y\n" +
+                             "n                                 n                                            n\n" +
+                             "i                                   i                                             i\n" +
+                             "n                                 n                                            n\n" +
+                             "e  i  g  h  t  y  n  i  n  e                                             e");
+        }
+        #endregion
+
         #region pingu
         [Command("pingu")]
         public async Task PinguAsync()
@@ -270,7 +286,22 @@ namespace Jellyfish.Modules
         }
         #endregion
 
-        #region whosThat
+        #endregion
+
+        #region Card Games
+
+        #region blackjack
+        [Command("blackjack")]
+        public async Task BlackjackAsync()
+        {
+            // Blackjack stub
+            await ReplyAsync("Not yet supported... sorry!");
+        }
+        #endregion
+
+        #endregion
+
+        #region Who's That Pokemon
         [Command("whosthat")]
         public async Task WhoAsync()
         {
@@ -287,7 +318,7 @@ namespace Jellyfish.Modules
         }
         #endregion
 
-        #region avatar
+        #region Avatar
         public async Task AvatarAsync([Remainder] SocketUser mention)
         {
             await Context.Channel.TriggerTypingAsync();
@@ -296,7 +327,7 @@ namespace Jellyfish.Modules
         }
         #endregion
 
-        #region textify
+        #region Textify
         [Command("textify")]
         public async Task TextifyAsync()
         {
@@ -337,7 +368,7 @@ namespace Jellyfish.Modules
         }
         #endregion
 
-        #region downloader
+        #region Downloader
         // Event handler for download of User avatar (called by Overloader as well)
         public async void DownloadDataCallback(Object sender,DownloadDataCompletedEventArgs e) //Overloader for the download
         {
@@ -477,12 +508,12 @@ namespace Jellyfish.Modules
                             }
                         }
 
-                        // Braille set
+                        /*// Braille set
                         char[] braille = new char[256];
                         for (int cntr = 10240; cntr < 10496; cntr++)
                         {
                             braille[cntr - 10240] = (char)cntr;
-                        }
+                        }*/
 
                         // With sixPix as the material and unicode braille as the medium, construct a textual representation of the image
                         string output = ToBraille(sigPix);
@@ -517,7 +548,7 @@ namespace Jellyfish.Modules
         }
         #endregion
 
-        #region timer
+        #region Timer
         // Countdown Timer
         private async Task CountdownAsync(int time)
         {
@@ -582,7 +613,7 @@ namespace Jellyfish.Modules
         }
         #endregion
 
-        #region resizeImage
+        #region ResizeImage
         /* ResizeImage
          * Code is not original for this helper method
          */
@@ -606,7 +637,7 @@ namespace Jellyfish.Modules
         }
         #endregion
 
-        #region toBraille
+        #region ToBraille
         /* ToBraille
          * Credit to Nia for this huge function!
          * There might be an easier way to handle this using binary numbers.
