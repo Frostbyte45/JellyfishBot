@@ -2,7 +2,7 @@
  * Author(s): Nia Specht, Ryan Rieger
  * Date: 11/20/2017
  * Description: Commands for the "Jellyfish" bot.
- * Usage: DO NOT USE CODE WITHOUT CREDIT TO AUTHORS. The toText command took a lot of time to write and is Nia's side-project; credit is due.
+ * Usage: DO NOT USE CODE WITHOUT CREDIT TO AUTHORS. The Textify/ToBraille commands took a lot of time to write and are Nia's side-projects; credit is due.
  * Version: 1.0
  * Completion date: N/A
  */
@@ -36,7 +36,8 @@ namespace Jellyfish.Modules
         * Add Card Game BGM option that allows users to listen to this:https://www.youtube.com/watch?v=6sjP1rSqf1w&list=PLR_Wo4dgp0sjwLUBfuOdXDDE9SYGHRJsl&index=67
             -While playing Blackjack or other card games, in the music channel
         * Add remind command that uses some sort of event handler and the datetime object (maybe Timer?)
-        * 
+        * Create remote server computer for running bot while we aren't testing things
+        * DefineEmote - Define lots of different emotes
          */
         #endregion
         
@@ -295,7 +296,29 @@ namespace Jellyfish.Modules
         public async Task BlackjackAsync()
         {
             // Blackjack stub
-            await ReplyAsync("Not yet supported... sorry!");
+            // await ReplyAsync("Not yet supported... sorry!");
+
+            // Generate game
+            Deck deck = new Deck();
+            deck.Shuffle();
+            List<Card> hand = new List<Card>();
+            hand.Add(deck.nextCard());
+            hand.Add(deck.nextCard());
+            bool stop = true;
+
+            // Request user's response until they stand
+            IMessageChannel chan = Context.Channel;
+            do
+            {
+                // Send hand (REMODEL THIS TO SEND 1 IMAGE THAT HAS ALL CARDS!)
+                await chan.SendFileAsync(hand[0].GetBitmap().ToString());
+                Context.Channel.EnterTypingState();
+                await Task.Delay(1500);
+                await ReplyAsync("Hit or stand, " + Context.User.Mention + "?");
+
+                // Add a check for next message from the user
+
+            } while (!stop);
         }
         #endregion
 
