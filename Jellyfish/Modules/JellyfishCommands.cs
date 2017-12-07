@@ -40,6 +40,12 @@ namespace Jellyfish.Modules
         * Create remote server computer for running bot while we aren't testing things
         * DefineEmote - Define lots of different emotes
         * Card Games - Add await ReplyAsync("Who wants to play! (Say \"I do!\" or \"Me!\")"); before games and add multiple player support
+                       If not enough players for the game decide to play, cancel the game
+        * Card Games - Cards Against Humanity
+        * Card Games - Rock, Paper, Scissors
+        * Card Games - Poker
+        * Card Games - Bull
+        * 
          */
         #endregion
         
@@ -58,6 +64,9 @@ namespace Jellyfish.Modules
             // Command "help"
             msg += "help <cmd> - get command list, or get specific command usage\n";
 
+            // Command "rules"
+            msg += "rules <game> - get the rules on a card game\n";
+
             // Command "invite"
             msg += "invite - get a link to add the bot to your server\n";
 
@@ -66,6 +75,21 @@ namespace Jellyfish.Modules
 
             // Command "89"
             msg += "89 - 89 made of 89's. What could be better?\n";
+
+            // Command "blackjack"
+            msg += "blackjack - start a game of Blackjack!\n";
+
+            // Command "gofish"
+            msg += "gofish - start a game of Go Fish!\n";
+
+            // Command "bull"
+            msg += "bull - start a game of Bull (Also known as \"I Doubt It\")!\n";
+
+            // Command "humanity"
+            msg += "humanity - start a game of Cards Against Humanity!\n";
+
+            // Command "poker"
+            msg += "poker - start a game of Poker!\n";
 
             // Command "ping"
             msg += "ping - get pong'd\n";
@@ -98,50 +122,86 @@ namespace Jellyfish.Modules
                 // Help usage
                 case "help":
                     msg2 += "You must really need help...\n";
-                    msg2 += "Help Usage:\n\"help <command>\" to get usage on a specific command, ";
+                    msg2 += "Help Usage:\n\"&help <command>\" to get usage on a specific command, ";
                     msg2 += "or \"help\" to get a list of commands.\n";
+                    break;
+
+                // Rules usage
+                case "rules":
+                    msg2 += "Rules Usage:\n\"&rules <card game>\" to get the rules on a card game";
                     break;
 
                 // Invite usage
                 case "invite":
-                    msg2 += "Invite Usage:\n\"invite\" to get a link for adding the bot to a server. ";
+                    msg2 += "Invite Usage:\n\"&invite\" to get a link for adding the bot to a server. ";
                     msg2 += "Note: you must have permission to manage bots on the server!";
                     break;
 
                 // Goodnight usage
                 case "goodnight":
-                    msg2 += "Goodnight Usage:\n\"goodnight <@user>\" to say goodnight to a specific user, ";
-                    msg2 += "or \"goodnight\" to wish yourself goodnight.\n";
+                    msg2 += "Goodnight Usage:\n\"&goodnight <@user>\" to say goodnight to a specific user, ";
+                    msg2 += "or \"&goodnight\" to wish yourself goodnight.\n";
                     break;
 
                 // 89 usage
                 case "89":
-                    msg2 += "89 Usage:\n\"89\" to get 89 made of 89's.";
+                    msg2 += "89 Usage:\n\"&89\" to get 89 made of 89's.";
+                    break;
+
+                // Blackjack usage
+                case "blackjack":
+                    msg2 += "Blackjack Usage:\n\"&blackjack\" to start a game of Blackjack, ";
+                    msg2 += "use \"&rules blackjack\" to get the rules";
+                    break;
+
+                // Go Fish usage
+                case "gofish":
+                    msg2 += "Go Fish Usage:\n\"&gofish\" to start a game of Go Fish, ";
+                    msg2 += "use \"&rules gofish\" to get the rules";
+                    break;
+
+                // Bull usage
+                case "bull":
+                    msg2 += "Bull Usage:\n\"&bull\" to start a game of Bull (also known as \"I Doubt It\"), ";
+                    msg2 += "use \"&rules bull\" to get the rules";
+                    break;
+
+                // Cards Against Humanity usage
+                case "humanity":
+                    msg2 += "Cards Against Humanity Usage:\n\"&humanity\" to start a game of Cards Against Humanity, ";
+                    msg2 += "use \"&rules humanity\" to get the rules";
+                    break;
+
+                // Poker usage
+                case "poker":
+                    msg2 += "Poker Usage:\n\"&poker\" to start a game of Poker, ";
+                    msg2 += "use \"&rules poker\" to get the rules";
                     break;
 
                 // Echo usage
                 case "echo":
-                    msg2 += "Echo Usage:\n\"echo <text>\" to repeat text.";
+                    msg2 += "Echo Usage:\n\"&echo <text>\" to repeat text.";
                     break;
                 
                 // Roll usage
                 case "roll":
-                    msg2 += "Roll Usage:\n\"roll <range>\" to return a random number from 1 to range.";
+                    msg2 += "Roll Usage:\n\"&roll <range>\" to return a random number from 1 to range.";
                     break;
 
                 // Pingu usage
                 case "pingu":
-                    msg2 += "Pingu Usage:\n\"pingu\" for noots.";
+                    msg2 += "Pingu Usage:\n\"&pingu\" for noots.";
                     break;
                 
                 // Avatar usage
                 case "avatar":
-                    msg2 += "Avatar Usage:\n\"avatar <@user>\" to get that user's avatar.";
+                    msg2 += "Avatar Usage:\n\"&avatar <@user>\" to get that user's avatar.";
                     break;
 
                 // Textify usage
                 case "textify":
-                    msg2 += "textify Usage:\n\"textify <@user OR link>\" to get that user's avatar or link's picture as text (use mentions).";
+                    msg2 += "textify Usage:\n\"&textify <@user OR link>\" to get that user's avatar or link's picture as text (use mentions), ";
+                    msg2 += "no parameters will use your profile picture.";
                     break;
                 
                 // Incorrect spelling section
@@ -237,7 +297,66 @@ namespace Jellyfish.Modules
 
         #region Card Games
 
+        #region Rules
+
+        [Command("rules")]
+        public async Task RulesAsync([Remainder] string game)
+        {
+            game = game.ToLower().Trim();
+            string rules = "";
+            bool error = false;
+            switch (game)
+            {
+                // Blackjack
+                case "blackjack":
+                    rules += "Blackjack starts by showing you the dealer\'s first card (hiding their other card) and your hand.\n";
+                    rules += "Then, you \"hit\" to get another card, or \"stand\" to keep your current hand.\n";
+                    rules += "You want to get as close to a total count of 21, but you don\'t want to go over it!\n";
+                    rules += "In this game, face cards are all worth 10, and aces can be 1 or one more than 10. Good luck!\n";
+                    break;
+
+                // Go Fish
+                case "gofish":
+                    rules += "Go Fish isn\'t supported yet, sorry!";
+                    break;
+
+                // Bull
+                case "bull":
+                    rules += "Bull (Also called \"I Doubt It\") isn\'t supported yet, sorry!";
+                    break;
+
+                // Cards Against Humanity
+                case "humanity":
+                    rules += "Cards Against Humanity isn\'t supported yet, sorry!";
+                    break;
+                
+                // Poker
+                case "poker":
+                    rules += "Poker isn\'t supported yet, sorry!";
+                    break;
+
+                // Other
+                default:
+                    await ReplyAsync("The game " + game + " is not supported or is mispelled...\nUse \"&help\" to check supported games!");
+                    error = true;
+                    break;
+            }
+            if(!error)
+                await ReplyAsync("Here are the rules on " + game + ":\n" + rules);
+        }
+
+        [Command("rules")]
+        // Overloader for incorrect parameters
+        public async Task RulesAsync()
+        {
+            await ReplyAsync("Please choose a card game to get rules on with \"&rules <game>\" (without \"<>\")!");
+        }
+
+        #endregion
+
         #region Blackjack
+
+        // Players: 1 - 3
         [Command("blackjack",RunMode = RunMode.Async)]
         public async Task BlackjackAsync()
         {
@@ -513,6 +632,57 @@ namespace Jellyfish.Modules
                 }
             }
         }
+        #endregion
+
+        #region Go Fish
+
+        // Players: 2 - 5 (up to 10 works)
+        [Command("gofish",RunMode = RunMode.Async)]
+        public async Task GoFishAsync()
+        {
+            await ReplyAsync("Not yet supported.");
+            // If 5 players or more, deal 5 cards to each player
+            // Else deal 7 cards to each player
+            // Suit doesn't matter, must have one of rank before asking
+            // If person has rank, they give all of that rank away, else asker must "Go Fish"
+            // Manage game with no commands, only keywords, ie. "Do you have any (keyword)3's/threes?", "(key phrase)Go fish!"
+            // The game would then hit the asker with a card, or transfer all cards of that rank if the responder has that rank
+
+        }
+
+        #endregion
+
+        #region Bull
+
+        // Players: 3 - 6
+        [Command("bull",RunMode = RunMode.Async)]
+        public async Task BullAsync()
+        {
+            await ReplyAsync("Not yet supported.");
+        }
+
+        #endregion
+
+        #region Cards Against Humanity
+
+        // Players: 3 - 10 (up to 20 works)
+        [Command("humanity",RunMode = RunMode.Async)]
+        public async Task HumanityAsync()
+        {
+            await ReplyAsync("Not yet supported.");
+        }
+
+        #endregion
+
+        #region Poker
+
+        // Players: 2 - 9
+        [Command("poker",RunMode = RunMode.Async)]
+        public async Task PokerAsync()
+        {
+            await ReplyAsync("Not yet supported.");
+        }
+
         #endregion
 
         #endregion

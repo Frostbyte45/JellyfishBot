@@ -36,15 +36,15 @@ namespace Jellyfish
                                 rank = Card.Rank.Ten;
                                 break;
                             case 9:
-                                image = "PNG-cards-1.3/" + "jack" + "_of_" + suit.ToString().ToLower() + "s.png";
+                                image = "PNG-cards-1.3/" + "jack" + "_of_" + suit.ToString().ToLower() + "s2.png";
                                 rank = Card.Rank.Jack;
                                 break;
                             case 10:
-                                image = "PNG-cards-1.3/" + "queen" + "_of_" + suit.ToString().ToLower() + "s.png";
+                                image = "PNG-cards-1.3/" + "queen" + "_of_" + suit.ToString().ToLower() + "s2.png";
                                 rank = Card.Rank.Queen;
                                 break;
                             case 10 + 1:
-                                image = "PNG-cards-1.3/" + "king" + "_of_" + suit.ToString().ToLower() + "s.png";
+                                image = "PNG-cards-1.3/" + "king" + "_of_" + suit.ToString().ToLower() + "s2.png";
                                 rank = Card.Rank.King;
                                 break;
                             case 12:
