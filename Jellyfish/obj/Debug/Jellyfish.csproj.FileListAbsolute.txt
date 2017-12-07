@@ -126,3 +126,4 @@ C:\Users\calvc\source\repos\Jellyfish\Jellyfish\obj\Debug\Jellyfish.csproj.CoreC
 C:\Users\calvc\source\repos\Jellyfish\Jellyfish\obj\Debug\Jellyfish.exe
 C:\Users\calvc\source\repos\Jellyfish\Jellyfish\obj\Debug\Jellyfish.pdb
 C:\Users\calvc\source\repos\Jellyfish\Jellyfish\obj\Debug\Jellyfish.csprojResolveAssemblyReference.cache
+C:\Users\calvc\source\repos\Jellyfish\Jellyfish\bin\Debug\Discord.Addons.Interactive.dll

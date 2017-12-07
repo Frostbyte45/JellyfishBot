@@ -8,6 +8,7 @@
  */
 
 using Discord;
+using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +38,7 @@ namespace Jellyfish
             _services = new ServiceCollection()
                 .AddSingleton(_client)
                 .AddSingleton(_commands)
+                .AddSingleton<InteractiveService>()
                 .BuildServiceProvider();
 
             string botToken = "MzgwNDIxNzM4ODQxNzY3OTM2.DO4XCg.LJmlTlBWiYhF2GZDSe96R2KuQ18";
@@ -94,6 +96,7 @@ namespace Jellyfish
 
         }
 
+        #region Additional Startup Tasks
         private async Task LoadObjects()
         {
             // Load objects
@@ -151,5 +154,6 @@ namespace Jellyfish
             }
             file.Close();
         }
+        #endregion
     }
 }

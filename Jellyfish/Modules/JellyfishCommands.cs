@@ -19,10 +19,11 @@ using System.IO;
 using System.Drawing;
 using System.Timers;
 using System.Linq;
+using Discord.Addons.Interactive;
 
 namespace Jellyfish.Modules
 {
-    public class JellyfishCommands : ModuleBase<SocketCommandContext>
+    public class JellyfishCommands : InteractiveBase //ModuleBase<SocketCommandContext>
     {
         #region TODO
         /* TODO
@@ -38,6 +39,7 @@ namespace Jellyfish.Modules
         * Add remind command that uses some sort of event handler and the datetime object (maybe Timer?)
         * Create remote server computer for running bot while we aren't testing things
         * DefineEmote - Define lots of different emotes
+        * Card Games - Add await ReplyAsync("Who wants to play! (Say \"I do!\" or \"Me!\")"); before games and add multiple player support
          */
         #endregion
         
@@ -233,6 +235,288 @@ namespace Jellyfish.Modules
 
         #endregion
 
+        #region Card Games
+
+        #region Blackjack
+        [Command("blackjack",RunMode = RunMode.Async)]
+        public async Task BlackjackAsync()
+        {
+            IMessageChannel chan = Context.Channel;
+            await chan.TriggerTypingAsync();
+
+            // Generate game
+            Deck deck = new Deck();
+            deck.Shuffle();
+            List<Card> hand = new List<Card>();
+            List<Card> dHand = new List<Card>();
+            List<Bitmap> playerCards = new List<Bitmap>();
+            List<Bitmap> dealerCards = new List<Bitmap>();
+            Bitmap playCards;
+            Bitmap dealCards;
+
+            // Add dealer cards
+            dHand.Add(deck.NextCard());
+            dHand.Add(deck.NextCard());
+            dealerCards.Add(new Bitmap(dHand[0].GetBitmap()));
+            dealerCards.Add(new Bitmap(dHand[1].GetBitmap()));
+
+            // Add player cards
+            hand.Add(deck.NextCard());
+            hand.Add(deck.NextCard());
+            playerCards.Add(new Bitmap(hand[0].GetBitmap()));
+            playerCards.Add(new Bitmap(hand[1].GetBitmap()));
+
+            // Merge hands
+            playCards = await Task.Run(() => MergeAsync(playerCards));
+            dealCards = await Task.Run(() => MergeAsync(dealerCards));
+
+            // Show dealer's first card (hide the "hole" card!)
+            await Task.Delay(1500);
+            // await ReplyAsync("Here\'s the dealer\'s first card!");
+            MemoryStream stream3 = new MemoryStream();
+            new Bitmap(dHand[0].GetBitmap()).Save(stream3, System.Drawing.Imaging.ImageFormat.Png);
+            stream3.Seek(0, SeekOrigin.Begin);
+            await chan.SendFileAsync(stream3, "cards.png", "Here\'s the dealer\'s first card!");
+
+            // Booleans to keep game running correctly
+            bool stop = true;
+            bool gameOver = false;
+
+            // Request user's response until they stand
+            int index = 2;
+            do
+            {
+                // Send hand
+                await chan.TriggerTypingAsync();
+                await Task.Delay(1500);
+                playCards = await Task.Run(() => MergeAsync(playerCards));
+                MemoryStream stream = new MemoryStream();
+                playCards.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                stream.Seek(0, SeekOrigin.Begin);
+                await chan.SendFileAsync(stream, "cards.png", "Here\'s your hand " + Context.User.Mention + "!");
+
+                // Booleans to keep game running correctly
+                bool contin = false;
+                bool hit = false;
+
+                IMessage Request;
+                SocketMessage Response;
+                // Make sure the user's input is correct
+                do
+                {
+                    await chan.TriggerTypingAsync();
+                    await Task.Delay(1500);
+                    Request = await ReplyAsync("Hit or stand, " + Context.User.Mention + "?");
+
+                    // Await next message, then check contents
+                    Response = await NextMessageAsync(true, true, new TimeSpan(0, 0, 45));
+
+                    if (Response.Content.ToLower().Contains("hit") && Response.Content.ToLower().Contains("stand"))
+                    {
+                        await chan.TriggerTypingAsync();
+                        await Task.Delay(1500);
+                        await ReplyAsync("Please say only \"hit\", or only \"stand\" in your response.");
+                    }
+                    else if (Response.Content.ToLower().Contains("hit"))
+                    {
+                        hit = true;
+                        contin = true;
+                    }
+                    else if (Response.Content.ToLower().Contains("stand"))
+                    {
+                        hit = false;
+                        contin = true;
+                    }
+                    else
+                    {
+                        await chan.TriggerTypingAsync();
+                        await Task.Delay(1500);
+                        await ReplyAsync("Please say \"hit\" or \"stand\" in your response.");
+                    }
+                } while (!contin);
+
+                // Hit or stand
+                if (hit)
+                {
+                    hand.Add(deck.NextCard());
+                    playerCards.Add(new Bitmap(hand[index].GetBitmap()));
+                    stop = false;
+                    index++;
+                }
+                else
+                {
+                    stop = true;
+                }
+                if (deck.Count(hand) > 21)
+                {
+                    stop = true;
+                    gameOver = true;
+                }
+            } while (!stop);
+            if (gameOver)
+            {
+                //Console.WriteLine("P: " + deck.Count(hand) + " D: " + deck.Count(dHand));
+                await chan.TriggerTypingAsync();
+                await Task.Delay(1500);
+
+                // Player's final hand
+                // TODO @Ryan Add embed builder here for images? idrk
+                // Merge hands
+                playCards = await Task.Run(() => MergeAsync(playerCards));
+                dealCards = await Task.Run(() => MergeAsync(dealerCards));
+
+                // Send hand
+                // await ReplyAsync("You\'ve lost " + Context.User.Mention + "...!\nYour card count went over 21.\nHere\'s your hand:");
+                playCards = await Task.Run(() => MergeAsync(playerCards));
+                string customName = Convert.ToString(Context.User.Id);
+                MemoryStream stream = new MemoryStream();
+                playCards.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                stream.Seek(0, SeekOrigin.Begin);
+                await chan.SendFileAsync(stream, "cards.png", "You\'ve lost " + Context.User.Mention + "...!\nYour card count went over 21.\nHere\'s your hand:");
+
+            }
+            else // Dealer's turn
+            {
+                await chan.TriggerTypingAsync();
+                await Task.Delay(1500);
+                int index2 = 2;
+                do
+                {
+                    // Dealer abuse
+                    dHand.Add(deck.NextCard());
+                    dealerCards.Add(new Bitmap(dHand[index2].GetBitmap()));
+                    index2++;
+
+                    // Check to see if the dealer lost already!
+                    if (deck.Count(dHand) > 21)
+                    {
+                        // Console.WriteLine("P: " + deck.Count(hand) + " D: " + deck.Count(dHand));
+                        // await ReplyAsync("You\'ve won " + Context.User.Mention + "!\nThe dealer\'s card count went over 21.\nHere\'s your hand:");
+
+                        // Player's final hand
+                        playCards = await Task.Run(() => MergeAsync(playerCards));
+                        MemoryStream stream = new MemoryStream();
+                        playCards.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                        stream.Seek(0, SeekOrigin.Begin);
+                        await chan.SendFileAsync(stream,"cards.png", "You\'ve won " + Context.User.Mention + "!\nThe dealer\'s card count went over 21.\nHere\'s your hand:");
+
+                        await chan.TriggerTypingAsync();
+                        await Task.Delay(1500);
+                        // await ReplyAsync("Here\'s the dealer\'s hand:");
+                        // Dealer's final hand
+                        dealCards = await Task.Run(() => MergeAsync(dealerCards));
+                        MemoryStream stream2 = new MemoryStream();
+                        dealCards.Save(stream2, System.Drawing.Imaging.ImageFormat.Png);
+                        stream2.Seek(0, SeekOrigin.Begin);
+                        await chan.SendFileAsync(stream2, "cards.png", "Here\'s the dealer\'s hand:");
+                        // Exit game
+                        gameOver = true;
+                        break;
+                    }
+                } while (deck.Count(dHand) < 17);
+
+                // See who wins if nobody lost yet
+                if (!gameOver)
+                {
+                    if (deck.Count(hand) > deck.Count(dHand)) // Player wins
+                    {
+                        // Console.WriteLine("P: " + deck.Count(hand) + " D: " + deck.Count(dHand));
+                        // await ReplyAsync("You\'ve won " + Context.User.Mention + "!\nGood game! Your hand was better!\nHere\'s your hand:");
+
+                        // Player's final hand
+                        playCards = await Task.Run(() => MergeAsync(playerCards));
+                        MemoryStream stream = new MemoryStream();
+                        playCards.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                        stream.Seek(0, SeekOrigin.Begin);
+                        await chan.SendFileAsync(stream, "cards.png", "You\'ve won " + Context.User.Mention + "!\nGood game! Your hand was better!\nHere\'s your hand:");
+
+                        await chan.TriggerTypingAsync();
+                        await Task.Delay(1500);
+                        // await ReplyAsync("Here\'s the dealer\'s hand:");
+                        // Dealer's final hand
+                        dealCards = await Task.Run(() => MergeAsync(dealerCards));
+                        MemoryStream stream2 = new MemoryStream();
+                        dealCards.Save(stream2, System.Drawing.Imaging.ImageFormat.Png);
+                        stream2.Seek(0, SeekOrigin.Begin);
+                        await chan.SendFileAsync(stream2, "cards.png", "Here\'s the dealer\'s hand:");
+
+
+
+                        // Exit game
+                    }
+                    else if (deck.Count(dHand) > deck.Count(hand)) // Dealer wins
+                    {
+                        // Console.WriteLine("P: " + deck.Count(hand) + " D: " + deck.Count(dHand));
+                        // await ReplyAsync("You\'ve lost " + Context.User.Mention + "...!\nGood game! The dealer\'s hand was better.\nHere\'s your hand:");
+
+                        // Player's final hand
+                        playCards = await Task.Run(() => MergeAsync(playerCards));
+                        MemoryStream stream = new MemoryStream();
+                        playCards.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                        stream.Seek(0, SeekOrigin.Begin);
+                        await chan.SendFileAsync(stream, "cards.png", "You\'ve lost " + Context.User.Mention + "...!\nGood game! The dealer\'s hand was better.\nHere\'s your hand:");
+
+                        await chan.TriggerTypingAsync();
+                        await Task.Delay(1500);
+                        // await ReplyAsync("Here\'s the dealer\'s hand:");
+                        // Dealer's final hand
+                        dealCards = await Task.Run(() => MergeAsync(dealerCards));
+                        MemoryStream stream2 = new MemoryStream();
+                        dealCards.Save(stream2, System.Drawing.Imaging.ImageFormat.Png);
+                        stream2.Seek(0, SeekOrigin.Begin);
+                        await chan.SendFileAsync(stream2, "cards.png", "Here\'s the dealer\'s hand:");
+
+
+
+                        // Exit game
+                    }
+                    else // Player and Dealer tie
+                    {
+                        // Console.WriteLine("P: " + deck.Count(hand) + " D: " + deck.Count(dHand));
+                        // await ReplyAsync("You\'ve tied with the dealer " + Context.User.Mention + ".\nGood game! The dealer\'s hand and yours are equal.\nHere\'s your hand:");
+
+                        // Player's final hand
+                        playCards = await Task.Run(() => MergeAsync(playerCards));
+                        MemoryStream stream = new MemoryStream();
+                        dealCards.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                        stream.Seek(0, SeekOrigin.Begin);
+                        await chan.SendFileAsync(stream, "cards.png", "You\'ve tied with the dealer " + Context.User.Mention + ".\nGood game! The dealer\'s hand and yours are equal.\nHere\'s your hand:");
+
+                        await chan.TriggerTypingAsync();
+                        await Task.Delay(1500);
+                        // await ReplyAsync("Here\'s the dealer\'s hand:");
+                        // Dealer's final hand
+                        dealCards = await Task.Run(() => MergeAsync(dealerCards));
+                        MemoryStream stream2 = new MemoryStream();
+                        dealCards.Save(stream2, System.Drawing.Imaging.ImageFormat.Png);
+                        stream2.Seek(0, SeekOrigin.Begin);
+                        await chan.SendFileAsync(stream2, "cards.png", "Here\'s the dealer\'s hand:");
+
+
+
+                        /*EmbedBuilder build = new EmbedBuilder();
+                        string cards = "";
+                        string dCards = "";
+                        for (int x = 0; x < hand.Count; x++) { cards += " " + hand[x]; }
+                        for (int x = 0; x < dHand.Count; x++) { dCards += " " + dHand[x]; }
+                        Discord.Color myRgbColor = new Discord.Color(255, 102, 179);
+                        build.AddField("Player Cards", cards)
+                            .WithColor(myRgbColor);
+                        build.AddField("Dealer Cards", dCards)
+                            .WithColor(myRgbColor);
+                        await chan.TriggerTypingAsync();
+                        await Task.Delay(1500);
+                        await ReplyAsync("Here\'s your hand:", false, build.Build());*/
+
+                        // Exit game
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #endregion
+
         #region Memes
 
         #region goodnight
@@ -284,41 +568,6 @@ namespace Jellyfish.Modules
         {
             await Context.Channel.TriggerTypingAsync();
             await ReplyAsync("https://www.youtube.com/watch?v=Fs3BHRIyF2E");
-        }
-        #endregion
-
-        #endregion
-
-        #region Card Games
-
-        #region blackjack
-        [Command("blackjack")]
-        public async Task BlackjackAsync()
-        {
-            // Blackjack stub
-            // await ReplyAsync("Not yet supported... sorry!");
-
-            // Generate game
-            Deck deck = new Deck();
-            deck.Shuffle();
-            List<Card> hand = new List<Card>();
-            hand.Add(deck.nextCard());
-            hand.Add(deck.nextCard());
-            bool stop = true;
-
-            // Request user's response until they stand
-            IMessageChannel chan = Context.Channel;
-            do
-            {
-                // Send hand (REMODEL THIS TO SEND 1 IMAGE THAT HAS ALL CARDS!)
-                await chan.SendFileAsync(hand[0].GetBitmap().ToString());
-                Context.Channel.EnterTypingState();
-                await Task.Delay(1500);
-                await ReplyAsync("Hit or stand, " + Context.User.Mention + "?");
-
-                // Add a check for next message from the user
-
-            } while (!stop);
         }
         #endregion
 
@@ -658,6 +907,42 @@ namespace Jellyfish.Modules
                 return imgToResize;
             }
         }
+        #endregion
+
+        #region Merge
+
+        public async Task<Bitmap> MergeAsync(List<Bitmap> cards)
+        {
+            Bitmap bmp = cards[0];
+            int height = bmp.Height;
+            int tempWidth = bmp.Width;
+            for(int x = 1; x < cards.Count; x++)
+            {
+                // Creates new Bitmap with the new width and fills it with the previous Bitmap
+                Bitmap bmp2 = new Bitmap(bmp.Width + cards[x].Width, height);
+                for(int z = 0; z < bmp.Width; z++)
+                {
+                    for(int y = 0; y < height; y++)
+                    {
+                        bmp2.SetPixel(z, y, bmp.GetPixel(z, y));
+                    }
+                }
+
+                // Fills the new width space with the next card
+                for (int z = bmp.Width; z < bmp.Width + cards[x].Width; z++)
+                {
+                    for(int y = 0; y < height; y++)
+                    {
+                        int tempZ = z - bmp.Width;
+                        System.Drawing.Color newPixel = cards[x].GetPixel(tempZ, y);
+                        bmp2.SetPixel(z, y, newPixel);
+                    }
+                }
+                bmp = bmp2;
+            }
+            return bmp;
+        }
+
         #endregion
 
         #region ToBraille
