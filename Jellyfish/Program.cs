@@ -52,6 +52,16 @@ namespace Jellyfish
 
             await _client.StartAsync();
             await LoadObjects();
+
+            _client.UserJoined += async (e) => {
+                // Current version is guild-specific
+                if (e.Guild.Id == 322611150246117376)
+                {
+                    // Adds guild-specific role
+                    await e.AddRoleAsync(e.Guild.GetRole(389164716485771264));
+                }
+            };
+
             await Task.Delay(-1);
             
         }
@@ -77,8 +87,11 @@ namespace Jellyfish
             if (message is null || message.Author.IsBot) return;
 
             int argPos = 0;
-
-            if (message.HasStringPrefix("&", ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos))
+            //if (message.Content.Contains("11"))
+            //{
+            //    await arg.DeleteAsync();
+            //}
+            /*else*/ if (message.HasStringPrefix("&", ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos))
             {
                 var context = new SocketCommandContext(_client, message);
 
@@ -97,7 +110,9 @@ namespace Jellyfish
         }
 
         #region Additional Startup Tasks
-        private async Task LoadObjects()
+
+        
+    private async Task LoadObjects()
         {
             // Load objects
             await _client.SetGameAsync("&help to transcend!");
@@ -154,6 +169,7 @@ namespace Jellyfish
             }
             file.Close();
         }
+        
         #endregion
     }
 }

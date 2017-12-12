@@ -23,7 +23,7 @@ using Discord.Addons.Interactive;
 
 namespace Jellyfish.Modules
 {
-    public class JellyfishCommands : InteractiveBase //ModuleBase<SocketCommandContext>
+    public class JellyfishCommands : InteractiveBase // ModuleBase<SocketCommandContext> If problems arise with Interactive Addons
     {
         #region TODO
         /* TODO
@@ -45,7 +45,7 @@ namespace Jellyfish.Modules
         * Card Games - Rock, Paper, Scissors
         * Card Games - Poker
         * Card Games - Bull
-        * 
+        * Additional Game - FIEnd or FrIEnd
          */
         #endregion
         
@@ -53,7 +53,7 @@ namespace Jellyfish.Modules
 
         #region Generic Bot Commands
 
-        #region help
+        #region Help
         [Command("help")]
         public async Task HelpAsync()
         {
@@ -69,6 +69,12 @@ namespace Jellyfish.Modules
 
             // Command "invite"
             msg += "invite - get a link to add the bot to your server\n";
+
+            // Command "defaultRole"
+            msg += "defaultRole <role> - set a role to be applied to new members on join\n";
+
+            // Command "updateRoles"
+            msg += "updateRoles <role> - change members with no roles to the specified role\n";
 
             // Command "goodnight"
             msg += "goodnight <@user> - say goodnight properly to someone\n";
@@ -214,7 +220,7 @@ namespace Jellyfish.Modules
         }
         #endregion
 
-        #region invite
+        #region Invite
         [Command ("invite")]
         public async Task InviteAsync()
         {
@@ -224,7 +230,7 @@ namespace Jellyfish.Modules
         }
         #endregion
 
-        #region echo
+        #region Echo
         [Command("echo")]
         public async Task EchoAsync([Remainder] string stuffToEcho)
         {
@@ -235,7 +241,7 @@ namespace Jellyfish.Modules
         }
         #endregion
 
-        #region ping
+        #region Ping
         [Command("ping")]
         public async Task PingAsync()
         {
@@ -250,7 +256,7 @@ namespace Jellyfish.Modules
         }
         #endregion
 
-        #region roll
+        #region Roll
         [Command("roll")]
         public async Task RollAsync(int num)
         {
@@ -291,6 +297,107 @@ namespace Jellyfish.Modules
                 await ReplyAsync("You rolled a " + temp);
             }
         }
+        #endregion
+        
+        #region Role Updater
+
+        [Command("updateRoles")]
+
+        public async Task RoleUpdateAsync([Remainder] IRole role)
+        {
+            if (Context.Guild.CurrentUser.GetPermissions(Context.Guild.GetChannel(Context.Channel.Id)).ManagePermissions == true)
+            {
+                bool change = false;
+                try
+                {
+                    for (int x = 0; x < Context.Guild.MemberCount; x++)
+                    {
+                        IUser user = Context.Guild.Users.ElementAt(x);
+                        if (Context.Guild.GetUser(user.Id).Roles.Count == 1 && !user.IsBot)
+                        {
+                            change = true;
+                            await Context.Guild.GetUser(user.Id).AddRoleAsync(role);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await ReplyAsync("There was an error:```" + ex.ToString() + "```");
+                }
+                if (change)
+                    await ReplyAsync("Successfully changed users with no roles to the specified role.");
+                else await ReplyAsync("There were no users to change!");
+            }
+            else
+            {
+                await ReplyAsync("You don\'t have permission to use this command!");
+            }
+        }
+
+        [Command("updateRoles")]
+
+        public async Task RoleUpdateAsync([Remainder] string notRole)
+        {
+            await ReplyAsync("The specified role does not exist! Check spelling");
+        }
+
+        #endregion
+
+        #region Default Role
+
+        [Command("defaultRole")]
+
+        public async Task DefaultRoleAsync([Remainder] IRole role)
+        {
+            try
+            {
+                if (Context.Guild.CurrentUser.GetPermissions(Context.Guild.GetChannel(Context.Channel.Id)).ManagePermissions == true)
+                {
+                    Context.Client.UserJoined -= async (e) => { await e.AddRoleAsync(role); };
+                    Context.Client.UserJoined += async (e) => { await e.AddRoleAsync(role); };
+                    await ReplyAsync("The requested role will be applied to new members from now on!");
+                }
+                else
+                {
+                    await ReplyAsync("You don\'t have permission to set the default new user role!");
+                }
+            }
+            catch (Exception ex)
+            {
+                await ReplyAsync("An error occurred while applying the role, try again later");
+            }
+        }
+
+        // Slower code that allows for error messaging
+        /*[Command("defaultRole")]
+
+        public async Task DefaultRoleAsync([Remainder] string role)
+        {
+            bool change = false;
+            if (Context.Guild.CurrentUser.GetPermissions(Context.Guild.GetChannel(Context.Channel.Id)).ManagePermissions == true)
+            {
+                for (int x = 0; x < Context.Guild.Roles.Count; x++)
+                {
+                    if (Context.Guild.Roles.ElementAt(x).ToString().ToLower() == role.ToLower())
+                    {
+                        Context.Client.UserJoined -= async (e) => { await e.AddRoleAsync(Context.Guild.Roles.ElementAt(x)); };
+                        Context.Client.UserJoined += async (e) => { await e.AddRoleAsync(Context.Guild.Roles.ElementAt(x)); };
+                        await ReplyAsync("The requested role will be applied to new members from now on!");
+                        change = true;
+                        break;
+                    }
+                }
+                if (!change)
+                {
+                    await ReplyAsync("Could not find the requested role, check the spelling!");
+                }
+            }
+            else
+            {
+                await ReplyAsync("You don\'t have permission to set the default new user role!");
+            }
+        }*/
+
         #endregion
 
         #endregion
@@ -430,18 +537,18 @@ namespace Jellyfish.Modules
                     // Await next message, then check contents
                     Response = await NextMessageAsync(true, true, new TimeSpan(0, 0, 45));
 
-                    if (Response.Content.ToLower().Contains("hit") && Response.Content.ToLower().Contains("stand"))
+                    if (Response.Content.ToLower().Contains("hit") && (Response.Content.ToLower().Contains("stay") || Response.Content.ToLower().Contains("stand")))
                     {
                         await chan.TriggerTypingAsync();
                         await Task.Delay(1500);
-                        await ReplyAsync("Please say only \"hit\", or only \"stand\" in your response.");
+                        await ReplyAsync("Please say only \"hit\", or only \"stay\" in your response.");
                     }
                     else if (Response.Content.ToLower().Contains("hit"))
                     {
                         hit = true;
                         contin = true;
                     }
-                    else if (Response.Content.ToLower().Contains("stand"))
+                    else if (Response.Content.ToLower().Contains("stay") || Response.Content.ToLower().Contains("stand"))
                     {
                         hit = false;
                         contin = true;
@@ -450,7 +557,7 @@ namespace Jellyfish.Modules
                     {
                         await chan.TriggerTypingAsync();
                         await Task.Delay(1500);
-                        await ReplyAsync("Please say \"hit\" or \"stand\" in your response.");
+                        await ReplyAsync("Please say \"hit\" or \"stay\" in your response.");
                     }
                 } while (!contin);
 
@@ -647,6 +754,97 @@ namespace Jellyfish.Modules
             // If person has rank, they give all of that rank away, else asker must "Go Fish"
             // Manage game with no commands, only keywords, ie. "Do you have any (keyword)3's/threes?", "(key phrase)Go fish!"
             // The game would then hit the asker with a card, or transfer all cards of that rank if the responder has that rank
+            await Context.Channel.TriggerTypingAsync();
+            await Task.Delay(1500);
+            await ReplyAsync("Who wants to play? Say \"done\" after everyone has decided. (Up to 10 players!)");
+            List<IMessage> responses = new List<IMessage>();
+            bool done = false;
+            int runs = 0;
+            int timeOuts = 0;
+
+            // Add players
+            List<IUser> players = new List<IUser>();
+            players.Add(Context.User);
+            do
+            {
+                responses.Add(await NextMessageAsync(false, true, new TimeSpan(0,0,15)));
+                if(responses.ElementAt(runs) == null)
+                {
+                    Console.WriteLine("Timeout reached: " + timeOuts);
+                    timeOuts++;
+                }
+                else if(runs > 0 && responses.ElementAt(runs) != null && responses.ElementAt(runs).Content.ToLower().Contains("done"))
+                {
+                    Console.WriteLine("Done selecting players, count = " + players.Count);
+                    done = true;
+                }
+                else if(responses.ElementAt(runs) != null && !players.Contains(responses.ElementAt(runs).Author) && (responses.ElementAt(runs).Content.ToLower().Contains("i do") || responses.ElementAt(runs).Content.ToLower().Contains("me") || responses.ElementAt(runs).Content.ToLower().Contains("i wan")))
+                {
+                    // Get user and add them to a list
+                    Console.WriteLine("Adding new player!");
+                    players.Add(responses.ElementAt(runs - timeOuts).Author);
+                }
+                else
+                {
+                    Console.WriteLine("Ignored request");
+                }
+                runs++;
+                if((players.Count < 2 && timeOuts > 1) || (players.Count < 2 && runs > 9) || (players.Count < 2 && done))
+                {
+                    await ReplyAsync("The game can\'t be started with only " + players.Count + " player(s)... Try again when you have more people!");
+                    return;
+                }
+            } while (!done || runs > 9 || timeOuts > 1);
+
+            // Deal out cards
+            Console.WriteLine("Dealing cards...");
+            Deck deck = new Deck();
+            deck.Shuffle();
+            List<List<Card>> hands = new List<List<Card>>();
+            List<List<Bitmap>> cards = new List<List<Bitmap>>();
+            int cardsDealt = 7;
+            if(players.Count >= 5)
+            {
+                cardsDealt = 5;
+            }
+            Console.WriteLine("Players: " + players.Count);
+            for(int x = 0; x < players.Count; x++)
+            {
+                if(players[x] != null)
+                {
+                    Console.WriteLine("Players at " + x + " is not null, starting to send them their hand.");
+                    hands.Add(new List<Card>());
+                    Console.WriteLine("Hand created for player " + x);
+                    cards.Add(new List<Bitmap>());
+                    Console.WriteLine("Card images created for player " + x);
+                    for (int y = 0; y < cardsDealt; y++)
+                    {
+                        Console.WriteLine("Current card: " + y);
+                        hands[x].Add(deck.NextCard());
+                        cards[x].Add(new Bitmap(hands[x].ElementAt(y).GetBitmap()));
+                    }
+
+                    // Send player their hand
+                    Console.WriteLine("Hand generation successful, sending their hand.");
+                    IDMChannel c = await players[x].GetOrCreateDMChannelAsync();
+                    Console.WriteLine("Awaiting file merge");
+                    Bitmap temp = await Task.Run(() => MergeAsync(cards[x]));
+                    MemoryStream stream = new MemoryStream();
+                    temp.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                    stream.Seek(0, SeekOrigin.Begin);
+                    Console.WriteLine("Awaiting SendFileAsync...");
+                    await c.SendFileAsync(stream, "cards.png", "Here\'s your hand!");
+                    Console.WriteLine("Done.");
+                }
+                else
+                {
+                    Console.WriteLine("Players at " + x + "is null.");
+                }
+            }
+
+            // Start the game, choosing a player to go first randomly
+            Console.WriteLine("Game started.");
+            await ReplyAsync("Game successfully started! Jk it crashed bc I didn\'t finish it.");
 
         }
 
