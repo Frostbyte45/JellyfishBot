@@ -18,7 +18,7 @@ namespace Jellyfish
         public Deck()
         {
             deck = new List <Card>();
-            string image;
+            Bitmap image;
 
             int rankNum;
             foreach (Card.Suit suit in Card.valuesS)
@@ -32,35 +32,35 @@ namespace Jellyfish
                         switch (x)
                         {
                             case 8:
-                                image = "PNG-cards-1.3/" + "10" + "_of_" + suit.ToString().ToLower() + "s.png";
+                                image = Program.playingCards.ElementAt(8 * ((int)suit + 1));
                                 rank = Card.Rank.Ten;
                                 break;
                             case 9:
-                                image = "PNG-cards-1.3/" + "jack" + "_of_" + suit.ToString().ToLower() + "s2.png";
+                                image = Program.playingCards.ElementAt(9 * ((int)suit + 1));
                                 rank = Card.Rank.Jack;
                                 break;
                             case 10:
-                                image = "PNG-cards-1.3/" + "queen" + "_of_" + suit.ToString().ToLower() + "s2.png";
+                                image = Program.playingCards.ElementAt(10 * ((int)suit + 1));
                                 rank = Card.Rank.Queen;
                                 break;
                             case 10 + 1:
-                                image = "PNG-cards-1.3/" + "king" + "_of_" + suit.ToString().ToLower() + "s2.png";
+                                image = Program.playingCards.ElementAt((10+1) * ((int)suit + 1));
                                 rank = Card.Rank.King;
                                 break;
                             case 12:
-                                image = "PNG-cards-1.3/" + "ace" + "_of_" + suit.ToString().ToLower() + "s.png";
+                                image = Program.playingCards.ElementAt(12 * ((int)suit + 1));
                                 rank = Card.Rank.Ace;
                                 break;
                             default:
                                 Console.WriteLine("FIENDADJWANDWJAKWA\nTHAT\'S NOT 89!!!");
-                                image = "PNG-cards-1.3/" + "2" + "_of_" + suit.ToString().ToLower() + "s.png";
+                                image = Program.playingCards.ElementAt(0);
                                 rank = Card.Rank.Ten;
                                 break;
                         }
                     }
                     else
                     {
-                        image = "PNG-cards-1.3/" + rankNum + "_of_" + suit.ToString().ToLower() + "s.png";
+                        image = Program.playingCards.ElementAt(x * ((int)suit + 1));
                     }
                     deck.Add(new Card(suit, rank, image, rankNum));
                     rankNum++;
@@ -150,16 +150,33 @@ namespace Jellyfish
             }
             return count;
         }
+
+        public bool HasRank(Card.Rank whichRank, List <Card> whichHand)
+        {
+            for(int x = 0; x < whichHand.Count; x++)
+            {
+                if(whichHand[x].GetRank() == whichRank)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool RankMatch(List <Card> whichHand)
+        {
+            return false;
+        }
     }
     class Card
     {
         protected Suit suit;
         protected Rank rank;
-        protected string img;
+        protected Bitmap img;
         private int ranku; // Counter to fix value errors
         // private string face; // Also rank
 
-        public Card(Suit suit, Rank rank, string img, int ranku)
+        public Card(Suit suit, Rank rank, Bitmap img, int ranku)
         {
             this.rank = rank;
             this.suit = suit;
@@ -195,7 +212,7 @@ namespace Jellyfish
             return suit;
         }
 
-        public string GetBitmap()
+        public Bitmap GetBitmap()
         {
             return img;
         }
@@ -236,5 +253,340 @@ namespace Jellyfish
             return str;
         }
 
+    }
+    class Incremental
+    {
+        protected int min;
+        protected int max;
+        protected int current;
+        protected int start;
+        protected int turn;
+        protected int last;
+
+        public Incremental(int min, int max, int start)
+        {
+            this.min = min;
+            this.max = max;
+            this.start = start;
+            current = start;
+            turn = 1;
+            if (start > min) last = start - 1;
+            else last = max;
+        }
+
+        public int Reset()
+        {
+            current = start;
+            turn = 1;
+            if (start > min) last = start - 1;
+            else last = max;
+            return current;
+        }
+
+        public int Turn()
+        {
+            return turn;
+        }
+
+        public int Current()
+        {
+            return current;
+        }
+
+        public int Last()
+        {
+            return last;
+        }
+
+        public int Next()
+        {
+            if (HasNext())
+            {
+                last = current;
+                current++;
+                if (current + 1 == start)
+                    turn = 1;
+                else turn++;
+                return current;
+            }
+            else
+            {
+                last = current;
+                current = min;
+                return current;
+            }
+        }
+
+        public bool HasNext()
+        {
+            return (current + 1) <= max;
+        }
+
+        public bool RoundEnd()
+        {
+            if (HasNext())
+                return current + 1 == start;
+            else return min == start;
+        }
+
+        public int GetMin()
+        {
+            return min;
+        }
+
+        public int GetMax()
+        {
+            return max;
+        }
+
+        public int Peek()
+        {
+            if (HasNext())
+                return current + 1;
+            else return min;
+        }
+    }
+    class KeyWords
+    {
+        // Checks if string is a card rank, if none found throws an error that must be caught
+        public static Card.Rank DecodeRank(string rank)
+        {
+            Card.Rank returnRank;
+
+            // Modify input for weird typing
+            rank = Format(rank);
+
+            // Switch for different rank aliases
+            switch (rank)
+            {
+                case "ace":
+                    returnRank = Card.Rank.Ace;
+                    break;
+                case "aces":
+                    returnRank = Card.Rank.Ace;
+                    break;
+                case "ace\'s":
+                    returnRank = Card.Rank.Ace;
+                    break;
+                case "acez":
+                    returnRank = Card.Rank.Ace;
+                    break;
+                case "two":
+                    returnRank = Card.Rank.Two;
+                    break;
+                case "twos":
+                    returnRank = Card.Rank.Two;
+                    break;
+                case "two\'s":
+                    returnRank = Card.Rank.Two;
+                    break;
+                case "twoz":
+                    returnRank = Card.Rank.Two;
+                    break;
+                case "three":
+                    returnRank = Card.Rank.Three;
+                    break;
+                case "threes":
+                    returnRank = Card.Rank.Three;
+                    break;
+                case "three\'s":
+                    returnRank = Card.Rank.Three;
+                    break;
+                case "threez":
+                    returnRank = Card.Rank.Three;
+                    break;
+                case "four":
+                    returnRank = Card.Rank.Four;
+                    break;
+                case "fours":
+                    returnRank = Card.Rank.Four;
+                    break;
+                case "four\'s":
+                    returnRank = Card.Rank.Four;
+                    break;
+                case "fourz":
+                    returnRank = Card.Rank.Four;
+                    break;
+                case "five":
+                    returnRank = Card.Rank.Five;
+                    break;
+                case "fives":
+                    returnRank = Card.Rank.Five;
+                    break;
+                case "five\'s":
+                    returnRank = Card.Rank.Five;
+                    break;
+                case "fivez":
+                    returnRank = Card.Rank.Five;
+                    break;
+                case "six":
+                    returnRank = Card.Rank.Six;
+                    break;
+                case "sixes":
+                    returnRank = Card.Rank.Six;
+                    break;
+                case "six\'s":
+                    returnRank = Card.Rank.Six;
+                    break;
+                case "sixs":
+                    returnRank = Card.Rank.Six;
+                    break;
+                case "sixz":
+                    returnRank = Card.Rank.Six;
+                    break;
+                case "seven":
+                    returnRank = Card.Rank.Seven;
+                    break;
+                case "sevens":
+                    returnRank = Card.Rank.Seven;
+                    break;
+                case "seven\'s":
+                    returnRank = Card.Rank.Seven;
+                    break;
+                case "sevenz":
+                    returnRank = Card.Rank.Seven;
+                    break;
+                case "eight":
+                    returnRank = Card.Rank.Eight;
+                    break;
+                case "eights":
+                    returnRank = Card.Rank.Eight;
+                    break;
+                case "eight\'s":
+                    returnRank = Card.Rank.Eight;
+                    break;
+                case "eightz":
+                    returnRank = Card.Rank.Eight;
+                    break;
+                case "nine":
+                    returnRank = Card.Rank.Nine;
+                    break;
+                case "nines":
+                    returnRank = Card.Rank.Nine;
+                    break;
+                case "nine\'s":
+                    returnRank = Card.Rank.Nine;
+                    break;
+                case "ninez":
+                    returnRank = Card.Rank.Nine;
+                    break;
+                case "ten":
+                    returnRank = Card.Rank.Ten;
+                    break;
+                case "tens":
+                    returnRank = Card.Rank.Ten;
+                    break;
+                case "ten\'s":
+                    returnRank = Card.Rank.Ten;
+                    break;
+                case "tenz":
+                    returnRank = Card.Rank.Ten;
+                    break;
+                case "jack":
+                    returnRank = Card.Rank.Jack;
+                    break;
+                case "jacks":
+                    returnRank = Card.Rank.Jack;
+                    break;
+                case "jack\'s":
+                    returnRank = Card.Rank.Jack;
+                    break;
+                case "jackz":
+                    returnRank = Card.Rank.Jack;
+                    break;
+                case "queen":
+                    returnRank = Card.Rank.Queen;
+                    break;
+                case "queens":
+                    returnRank = Card.Rank.Queen;
+                    break;
+                case "queen\'s":
+                    returnRank = Card.Rank.Queen;
+                    break;
+                case "queenz":
+                    returnRank = Card.Rank.Queen;
+                    break;
+                case "king":
+                    returnRank = Card.Rank.King;
+                    break;
+                case "kings":
+                    returnRank = Card.Rank.King;
+                    break;
+                case "king\'s":
+                    returnRank = Card.Rank.King;
+                    break;
+                case "kingz":
+                    returnRank = Card.Rank.King;
+                    break;
+                default:
+                    throw new Exception("Card not found!: " + rank);
+            }
+
+            return returnRank;
+        }
+
+        // Removes duplicate letters, since saying "threeeeeee's" or "aaacccceeeeessss" can be fun in the moment
+        public static string Format(string input)
+        {
+            input = input.ToLower();
+            string output = "";
+            bool modified = false;
+            int letCount = 0;
+            int curLet = 0;
+
+            // Removes duplicate letters
+            while (letCount < input.Length)
+            {
+                if (letCount == 0) // Prevents indexing errors
+                {
+                    output += input[letCount];
+                    curLet++;
+                }
+                else if (output[curLet-1] == input[letCount])
+                {
+                    modified = true;
+                }
+                else
+                {
+                    output += input[letCount];
+                    curLet++;
+                }
+                letCount++;
+            }
+
+            // Three is the only card rank it will get wrong, since it has a double letter
+            switch (output)
+            {
+                case "thre":
+                    if (modified)
+                        return "three";
+                    else return output;
+                case "thres":
+                    if (modified)
+                        return "threes";
+                    else return output;
+                case "threz":
+                    if (modified)
+                        return "threez";
+                    else return output;
+                case "thre\'s":
+                    if (modified)
+                        return "three\'s";
+                    else return output;
+                default:
+                    return output;
+            }
+        }
+
+        /*// Checks if string is a request
+        public static bool IsRequest(string req)
+        {
+            switch (Format(req))
+            {
+                case ""
+                default:
+                    return false;
+            }
+        }*/
     }
 }

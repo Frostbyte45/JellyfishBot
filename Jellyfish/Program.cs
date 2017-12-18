@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Drawing;
 // using System.Linq; // Uncomment this if needed
 // using System.Text; // Uncomment this if needed
 
@@ -24,6 +25,7 @@ namespace Jellyfish
     class Program
     {
         public static List<string> pokemon = new List<string>();
+        public static List<Bitmap> playingCards = new List<Bitmap>();
         static void Main(string[] args) => new Program().RunBotAsync().GetAwaiter().GetResult();
 
         private DiscordSocketClient _client;
@@ -116,6 +118,8 @@ namespace Jellyfish
         {
             // Load objects
             await _client.SetGameAsync("&help to transcend!");
+
+            // Load pokemon
             System.IO.StreamReader file = new System.IO.StreamReader("pokemonList.txt");
             int counter = 0;
             string line;
@@ -168,6 +172,42 @@ namespace Jellyfish
                 counter++;
             }
             file.Close();
+
+            // Load cards
+            foreach (Card.Suit suit in Card.valuesS)
+            {
+                for (int x = 0; x < 13; x++)
+                {
+                    if (x > 7) // Face cards
+                    {
+                        switch (x)
+                        {
+                            case 8:
+                                playingCards.Add(new Bitmap("PNG-cards-1.3/" + "10" + "_of_" + suit.ToString().ToLower() + "s.png"));
+                                break;
+                            case 9:
+                                playingCards.Add(new Bitmap("PNG-cards-1.3/" + "jack" + "_of_" + suit.ToString().ToLower() + "s2.png"));
+                                break;
+                            case 10:
+                                playingCards.Add(new Bitmap("PNG-cards-1.3/" + "queen" + "_of_" + suit.ToString().ToLower() + "s2.png"));
+                                break;
+                            case 10 + 1:
+                                playingCards.Add(new Bitmap("PNG-cards-1.3/" + "king" + "_of_" + suit.ToString().ToLower() + "s2.png"));
+                                break;
+                            case 12:
+                                playingCards.Add(new Bitmap("PNG-cards-1.3/" + "ace" + "_of_" + suit.ToString().ToLower() + "s.png"));
+                                break;
+                            default:
+                                Console.WriteLine("Error.");
+                                break;
+                        }
+                    }
+                    else // Normal cards
+                    {
+                        playingCards.Add(new Bitmap("PNG-cards-1.3/" + (x+2) + "_of_" + suit.ToString().ToLower() + "s.png"));
+                    }
+                }
+            }
         }
         
         #endregion

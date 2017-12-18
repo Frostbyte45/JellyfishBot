@@ -27,6 +27,7 @@ namespace Jellyfish.Modules
     {
         #region TODO
         /* TODO
+         * TODO REWRITE ALL LOOP METHODS IN ASYNC MODE
          * Add logs for each command's usage, and also count the following variables:
             -"Who's That Pokemon" wins
             -"Help" calls (lol)
@@ -45,7 +46,9 @@ namespace Jellyfish.Modules
         * Card Games - Rock, Paper, Scissors
         * Card Games - Poker
         * Card Games - Bull
+        * Card Games - Uno
         * Additional Game - FIEnd or FrIEnd
+        * TODO Use Graphics class to merge images; it will probably be a lot quicker
          */
         #endregion
         
@@ -91,11 +94,17 @@ namespace Jellyfish.Modules
             // Command "bull"
             msg += "bull - start a game of Bull (Also known as \"I Doubt It\")!\n";
 
+            // Command "uno"
+            msg += "uno - start a game of Uno\n";
+
             // Command "humanity"
             msg += "humanity - start a game of Cards Against Humanity!\n";
 
             // Command "poker"
             msg += "poker - start a game of Poker!\n";
+
+            // Command "cardlist"
+            msg += "cardlist - get an image of the cardset (if you don\'t think it\'s right)\n";
 
             // Command "ping"
             msg += "ping - get pong'd\n";
@@ -154,6 +163,12 @@ namespace Jellyfish.Modules
                     msg2 += "89 Usage:\n\"&89\" to get 89 made of 89's.";
                     break;
 
+                // Cardset usage
+                case "cardset":
+                    msg2 += "Cardset Usage:\n\"&cardset\" to get an image of all the cards used in ";
+                    msg2 += "the bot\'s card games";
+                    break;
+                
                 // Blackjack usage
                 case "blackjack":
                     msg2 += "Blackjack Usage:\n\"&blackjack\" to start a game of Blackjack, ";
@@ -170,6 +185,12 @@ namespace Jellyfish.Modules
                 case "bull":
                     msg2 += "Bull Usage:\n\"&bull\" to start a game of Bull (also known as \"I Doubt It\"), ";
                     msg2 += "use \"&rules bull\" to get the rules";
+                    break;
+
+                // Uno usage
+                case "uno":
+                    msg2 += "Uno Usage:\n\"&uno\" to start a game of Uno, ";
+                    msg2 += "use \"&rules uno\" to get the rules";
                     break;
 
                 // Cards Against Humanity usage
@@ -364,7 +385,7 @@ namespace Jellyfish.Modules
             }
             catch (Exception ex)
             {
-                await ReplyAsync("An error occurred while applying the role, try again later");
+                await ReplyAsync("An error occurred while applying the role, try again later:\n" + ex);
             }
         }
 
@@ -432,6 +453,11 @@ namespace Jellyfish.Modules
                     rules += "Bull (Also called \"I Doubt It\") isn\'t supported yet, sorry!";
                     break;
 
+                // Uno
+                case "uno":
+                    rules += "Uno isn\'t supported yet, sorry!";
+                    break;
+
                 // Cards Against Humanity
                 case "humanity":
                     rules += "Cards Against Humanity isn\'t supported yet, sorry!";
@@ -461,6 +487,16 @@ namespace Jellyfish.Modules
 
         #endregion
 
+        #region Card List
+
+        [Command("cardlist")]
+        public async Task CardListAsync()
+        {
+            await Context.Channel.SendFileAsync("cardlist.png", "Here are all the cards in a deck. I hope they\'re right...");
+        }
+
+        #endregion
+
         #region Blackjack
 
         // Players: 1 - 3
@@ -483,14 +519,14 @@ namespace Jellyfish.Modules
             // Add dealer cards
             dHand.Add(deck.NextCard());
             dHand.Add(deck.NextCard());
-            dealerCards.Add(new Bitmap(dHand[0].GetBitmap()));
-            dealerCards.Add(new Bitmap(dHand[1].GetBitmap()));
+            dealerCards.Add(dHand[0].GetBitmap());
+            dealerCards.Add(dHand[1].GetBitmap());
 
             // Add player cards
             hand.Add(deck.NextCard());
             hand.Add(deck.NextCard());
-            playerCards.Add(new Bitmap(hand[0].GetBitmap()));
-            playerCards.Add(new Bitmap(hand[1].GetBitmap()));
+            playerCards.Add(hand[0].GetBitmap());
+            playerCards.Add(hand[1].GetBitmap());
 
             // Merge hands
             playCards = await Task.Run(() => MergeAsync(playerCards));
@@ -500,7 +536,7 @@ namespace Jellyfish.Modules
             await Task.Delay(1500);
             // await ReplyAsync("Here\'s the dealer\'s first card!");
             MemoryStream stream3 = new MemoryStream();
-            new Bitmap(dHand[0].GetBitmap()).Save(stream3, System.Drawing.Imaging.ImageFormat.Png);
+            dHand[0].GetBitmap().Save(stream3, System.Drawing.Imaging.ImageFormat.Png);
             stream3.Seek(0, SeekOrigin.Begin);
             await chan.SendFileAsync(stream3, "cards.png", "Here\'s the dealer\'s first card!");
 
@@ -565,7 +601,7 @@ namespace Jellyfish.Modules
                 if (hit)
                 {
                     hand.Add(deck.NextCard());
-                    playerCards.Add(new Bitmap(hand[index].GetBitmap()));
+                    playerCards.Add(hand[index].GetBitmap());
                     stop = false;
                     index++;
                 }
@@ -610,7 +646,7 @@ namespace Jellyfish.Modules
                 {
                     // Dealer abuse
                     dHand.Add(deck.NextCard());
-                    dealerCards.Add(new Bitmap(dHand[index2].GetBitmap()));
+                    dealerCards.Add(dHand[index2].GetBitmap());
                     index2++;
 
                     // Check to see if the dealer lost already!
@@ -718,23 +754,8 @@ namespace Jellyfish.Modules
                         stream2.Seek(0, SeekOrigin.Begin);
                         await chan.SendFileAsync(stream2, "cards.png", "Here\'s the dealer\'s hand:");
 
-
-
-                        /*EmbedBuilder build = new EmbedBuilder();
-                        string cards = "";
-                        string dCards = "";
-                        for (int x = 0; x < hand.Count; x++) { cards += " " + hand[x]; }
-                        for (int x = 0; x < dHand.Count; x++) { dCards += " " + dHand[x]; }
-                        Discord.Color myRgbColor = new Discord.Color(255, 102, 179);
-                        build.AddField("Player Cards", cards)
-                            .WithColor(myRgbColor);
-                        build.AddField("Dealer Cards", dCards)
-                            .WithColor(myRgbColor);
-                        await chan.TriggerTypingAsync();
-                        await Task.Delay(1500);
-                        await ReplyAsync("Here\'s your hand:", false, build.Build());*/
-
                         // Exit game
+                        // return;
                     }
                 }
             }
@@ -747,46 +768,44 @@ namespace Jellyfish.Modules
         [Command("gofish",RunMode = RunMode.Async)]
         public async Task GoFishAsync()
         {
-            await ReplyAsync("Not yet supported.");
             // If 5 players or more, deal 5 cards to each player
             // Else deal 7 cards to each player
             // Suit doesn't matter, must have one of rank before asking
             // If person has rank, they give all of that rank away, else asker must "Go Fish"
             // Manage game with no commands, only keywords, ie. "Do you have any (keyword)3's/threes?", "(key phrase)Go fish!"
             // The game would then hit the asker with a card, or transfer all cards of that rank if the responder has that rank
-            await Context.Channel.TriggerTypingAsync();
-            await Task.Delay(1500);
-            await ReplyAsync("Who wants to play? Say \"done\" after everyone has decided. (Up to 10 players!)");
+            await ReplyAsync("Who wants to play Go Fish? Say \"done\" after everyone has decided. (Up to 10 players!)");
             List<IMessage> responses = new List<IMessage>();
             bool done = false;
+            int playerNum = 0;
             int runs = 0;
             int timeOuts = 0;
 
             // Add players
             List<IUser> players = new List<IUser>();
             players.Add(Context.User);
+            playerNum++;
             do
             {
-                responses.Add(await NextMessageAsync(false, true, new TimeSpan(0,0,15)));
+                responses.Add(await NextMessageAsync(false, true, new TimeSpan(0,0,30)));
                 if(responses.ElementAt(runs) == null)
                 {
-                    Console.WriteLine("Timeout reached: " + timeOuts);
                     timeOuts++;
                 }
                 else if(runs > 0 && responses.ElementAt(runs) != null && responses.ElementAt(runs).Content.ToLower().Contains("done"))
                 {
-                    Console.WriteLine("Done selecting players, count = " + players.Count);
                     done = true;
                 }
-                else if(responses.ElementAt(runs) != null && !players.Contains(responses.ElementAt(runs).Author) && (responses.ElementAt(runs).Content.ToLower().Contains("i do") || responses.ElementAt(runs).Content.ToLower().Contains("me") || responses.ElementAt(runs).Content.ToLower().Contains("i wan")))
+                else if(responses.ElementAt(runs) != null && !responses.ElementAt(runs).Author.IsBot && !players.Contains(responses.ElementAt(runs).Author) && !responses.ElementAt(runs).Content.ToLower().Contains("i don") && (responses.ElementAt(runs).Content.ToLower().Contains("i do") || responses.ElementAt(runs).Content.ToLower().Contains("me") || responses.ElementAt(runs).Content.ToLower().Contains("i wan")))
                 {
                     // Get user and add them to a list
-                    Console.WriteLine("Adding new player!");
-                    players.Add(responses.ElementAt(runs - timeOuts).Author);
+                    players.Add(responses.ElementAt(runs).Author);
+                    playerNum++;
+                    await ReplyAsync(players.ElementAt(playerNum - 1).Username + ", you\'re in!");
                 }
                 else
                 {
-                    Console.WriteLine("Ignored request");
+                    // Ignore
                 }
                 runs++;
                 if((players.Count < 2 && timeOuts > 1) || (players.Count < 2 && runs > 9) || (players.Count < 2 && done))
@@ -797,55 +816,263 @@ namespace Jellyfish.Modules
             } while (!done || runs > 9 || timeOuts > 1);
 
             // Deal out cards
-            Console.WriteLine("Dealing cards...");
+            await ReplyAsync("You\'ll get your hand in a bit... They\'ll be in your DM\'s!");
             Deck deck = new Deck();
             deck.Shuffle();
             List<List<Card>> hands = new List<List<Card>>();
             List<List<Bitmap>> cards = new List<List<Bitmap>>();
+            List<List<Card.Rank>> books = new List<List<Card.Rank>>();
             int cardsDealt = 7;
             if(players.Count >= 5)
             {
                 cardsDealt = 5;
             }
-            Console.WriteLine("Players: " + players.Count);
             for(int x = 0; x < players.Count; x++)
             {
                 if(players[x] != null)
                 {
-                    Console.WriteLine("Players at " + x + " is not null, starting to send them their hand.");
                     hands.Add(new List<Card>());
-                    Console.WriteLine("Hand created for player " + x);
                     cards.Add(new List<Bitmap>());
-                    Console.WriteLine("Card images created for player " + x);
+                    books.Add(new List<Card.Rank>());
                     for (int y = 0; y < cardsDealt; y++)
                     {
-                        Console.WriteLine("Current card: " + y);
                         hands[x].Add(deck.NextCard());
-                        cards[x].Add(new Bitmap(hands[x].ElementAt(y).GetBitmap()));
+                        cards[x].Add(hands[x].ElementAt(y).GetBitmap());
                     }
 
                     // Send player their hand
-                    Console.WriteLine("Hand generation successful, sending their hand.");
                     IDMChannel c = await players[x].GetOrCreateDMChannelAsync();
-                    Console.WriteLine("Awaiting file merge");
                     Bitmap temp = await Task.Run(() => MergeAsync(cards[x]));
                     MemoryStream stream = new MemoryStream();
                     temp.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
                     stream.Seek(0, SeekOrigin.Begin);
-                    Console.WriteLine("Awaiting SendFileAsync...");
                     await c.SendFileAsync(stream, "cards.png", "Here\'s your hand!");
-                    Console.WriteLine("Done.");
                 }
                 else
                 {
-                    Console.WriteLine("Players at " + x + "is null.");
+                    // Console.WriteLine("Players at " + x + "is null.");
                 }
             }
 
             // Start the game, choosing a player to go first randomly
-            Console.WriteLine("Game started.");
-            await ReplyAsync("Game successfully started! Jk it crashed bc I didn\'t finish it.");
+            // Console.WriteLine("Game started.");
+            Random gen = new Random();
 
+            // Note: Incremental class was made in CardTools.cs, and is extremely helpful for turns, since you can start at any value!
+            Incremental whosTurn = new Incremental(0, players.Count - 1, gen.Next(players.Count));
+
+            // Output turn order
+            EmbedBuilder builder = new EmbedBuilder();
+            string playerOrder = players[whosTurn.Current()].Username;
+            
+            while(!whosTurn.RoundEnd()) // Adds players in order until the end
+            {
+                playerOrder += "\n" + players[whosTurn.Next()].Username;
+            }
+            builder.AddField("Turn Order:", playerOrder)
+                .WithColor(new Discord.Color(255, 102, 179));
+            await ReplyAsync("Here\'s the turn order, start when you\'re ready " + players[whosTurn.Reset()].Mention + ":", false,builder.Build());
+
+            // Start game loop, searching messages for key words!
+            // Use KeyWords.DecodeRank(string rank) to check user inputs after a split
+            ISocketMessageChannel chan = Context.Channel;
+            SocketMessage Response;
+            bool gameOver = false;
+            bool roundOver = false;
+            int timeSpans = 0;
+            int waitTime = 60;
+            bool askTurn = true;
+            Card.Rank reqRank = Card.Rank.Two;
+
+            // Game loop
+            while (!gameOver)
+            {
+                do // Message loop
+                {
+                    // Check each user's hand for 4 matching ranks
+                    for (int y = 0; y < players.Count; y++)
+                    {
+                        // While the player has books, remove the cards from their hand and add to their book list
+                        while (deck.RankMatch(hands[y]))
+                        {
+
+                        }
+                    }
+
+                    // Await next message, then check contents
+                    Response = await NextMessageAsync(false, true, new TimeSpan(0, 0, waitTime));
+
+                    // For empty/null message, time out after a while so it doesn't hold up the gateway
+                    if (Response == null)
+                    {
+                        switch (timeSpans)
+                        {
+                            case 3:
+                                await ReplyAsync("Ending game.");
+                                break;
+                            case 2:
+                                await ReplyAsync("The game will end in a minute if you don\'t say anything!\n Say \"pause <seconds>\" without the <> to wait that many seconds until you\'re back.");
+                                break;
+                            case 1:
+                                await ReplyAsync("You really shouldn\'t be taking two minutes for this, " + players[whosTurn.Current()].Username + "!");
+                                break;
+                            default:
+                                await ReplyAsync("You\'ve taken a minute, just so you know, " + players[whosTurn.Current()].Username + "-"); // Comment out later
+                                break;
+                        }
+                        waitTime = 60;
+                        timeSpans++;
+                        continue;
+                    }
+
+                    // Wait for people that have to brb/afk
+                    if (Response.Content.ToLower().Contains("pause"))
+                    {
+                        string[] resp = Response.Content.ToLower().Split(' ');
+                        for (int x = 0; x < resp.Length; x++)
+                        {
+                            if (resp[x].Equals("pause"))
+                            {
+                                try
+                                {
+                                    waitTime = Convert.ToInt32(resp[x + 1]);
+                                    if (waitTime > 600) waitTime = 600;
+                                    await ReplyAsync("Let\'s wait " + waitTime + " seconds for the next turn.");
+                                    break;
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine("Error in number formatting for pause time: " + e);
+                                    break;
+                                }
+                            }
+                        }
+                        continue;
+                    }
+
+                    // Check message for key words from current user
+                    if (askTurn)
+                    {
+                        // Ignore messages sent by other people!
+                        if (Response.Author.Id != players[whosTurn.Current()].Id)
+                            continue;
+
+                        // Check if the message is actually a request
+                        if(Response.Content.ToLower().Contains("have any"))
+                        {
+                            string[] resp = Response.Content.ToLower().Split(' ');
+                            bool fail = true;
+                            Card.Rank rank = Card.Rank.Two;
+                            for (int x = 0; x < resp.Length; x++)
+                            {
+                                if (resp[x].Equals("any"))
+                                {
+                                    try
+                                    {
+                                        rank = KeyWords.DecodeRank(resp[x + 1]);
+                                        fail = false;
+                                        break;
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Console.WriteLine("Not a rank: " + e);
+                                        fail = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            // Just ignore if people don't say an actual rank after "any"
+                            if (fail) continue;
+
+                            // See if the current user has the rank in their hand, if not remind them of the rules with :eyes: for effect
+                            if (!deck.HasRank(rank, hands[whosTurn.Current()]))
+                            {
+                                await ReplyAsync("You have to have one of the ranks of the card you ask for, " + players[whosTurn.Current()].Username + "... :eyes:");
+                                continue;
+                            }
+
+                            // Move to next turn
+                            askTurn = false;
+                            whosTurn.Next();
+                            reqRank = rank;
+                        }
+                    }
+
+                    // Response must have "go fish" or "I do" or the like
+                    else
+                    {
+                        // Ignore messages sent by other people!
+                        if (Response.Author.Id != players[whosTurn.Current()].Id)
+                            continue;
+
+                        // Check if the message is actually a response
+                        if (Response.Content.ToLower().Contains("go fish"))
+                        {
+                            // See if the current user has the rank in their hand, if so remind them of the rules with :eyes: for effect
+                            if (deck.HasRank(reqRank, hands[whosTurn.Current()]))
+                            {
+                                await ReplyAsync("You can only tell them to fish if you _don\'t_ have that card rank, " + players[whosTurn.Current()].Username + "... :eyes:");
+                                continue;
+                            }
+
+                            // Add a random card to the last player's hand, so they "go fish"
+                            hands[whosTurn.Last()].Add(deck.NextCard());
+                            IDMChannel c = await players[whosTurn.Last()].GetOrCreateDMChannelAsync();
+                            Bitmap temp = await Task.Run(() => MergeAsync(cards[whosTurn.Last()]));
+                            MemoryStream stream = new MemoryStream();
+                            temp.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                            stream.Seek(0, SeekOrigin.Begin);
+                            await c.SendFileAsync(stream, "cards.png", "Here\'s your new hand, enjoy your fishing.");
+                            askTurn = true;
+                            continue;
+                        }
+
+                        // Check if the message is actually a response
+                        string cont = Response.Content.ToLower();
+                        if ((cont.Contains("i do") || cont.Contains("yes") || cont.Contains("indeed") || cont.Contains("ya")))
+                        {
+                            // See if the current user has the rank in their hand, if so remind them of the rules with :eyes: for effect
+                            if (!deck.HasRank(reqRank, hands[whosTurn.Current()]))
+                            {
+                                await ReplyAsync("You can only say that you do if you actually do, y\'know, " + players[whosTurn.Current()].Username + "... :eyes:");
+                                continue;
+                            }
+
+                            // Transfer all cards of that rank to last player
+                            for(int x = 0; x < hands[whosTurn.Current()].Count; x++)
+                            {
+                                if(hands[whosTurn.Current()].ElementAt(x).GetRank() == reqRank)
+                                {
+                                    hands[whosTurn.Last()].Add(hands[whosTurn.Current()].ElementAt(x));
+                                    hands[whosTurn.Current()].RemoveAt(x);
+                                }
+                            }
+
+                            // Send players their updated hands
+                            // Requesting player
+                            IDMChannel c = await players[whosTurn.Last()].GetOrCreateDMChannelAsync();
+                            Bitmap temp = await Task.Run(() => MergeAsync(cards[whosTurn.Last()]));
+                            MemoryStream stream = new MemoryStream();
+                            temp.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                            stream.Seek(0, SeekOrigin.Begin);
+                            await c.SendFileAsync(stream, "cards.png", "Here\'s your new hand, you\'ve got some new ones!");
+
+                            // Responding player
+                            IDMChannel ch = await players[whosTurn.Current()].GetOrCreateDMChannelAsync();
+                            Bitmap temp2 = await Task.Run(() => MergeAsync(cards[whosTurn.Current()]));
+                            MemoryStream stream2 = new MemoryStream();
+                            temp.Save(stream2, System.Drawing.Imaging.ImageFormat.Png);
+                            stream2.Seek(0, SeekOrigin.Begin);
+                            await ch.SendFileAsync(stream2, "cards.png", "Here\'s your new hand, you\'ve lost a few.");
+
+                            askTurn = true;
+                        }
+                    }
+
+                    timeSpans = 0;
+                } while (!roundOver); // End message loop
+            } // End game loop
         }
 
         #endregion
@@ -1281,34 +1508,21 @@ namespace Jellyfish.Modules
 
         public async Task<Bitmap> MergeAsync(List<Bitmap> cards)
         {
-            Bitmap bmp = cards[0];
-            int height = bmp.Height;
-            int tempWidth = bmp.Width;
-            for(int x = 1; x < cards.Count; x++)
+            int tempWidth = cards[0].Width * cards.Count;
+            Bitmap bmp2 = new Bitmap(tempWidth, cards[0].Height);
+            
+            for(int x = 0; x < cards.Count; x++)
             {
-                // Creates new Bitmap with the new width and fills it with the previous Bitmap
-                Bitmap bmp2 = new Bitmap(bmp.Width + cards[x].Width, height);
-                for(int z = 0; z < bmp.Width; z++)
-                {
-                    for(int y = 0; y < height; y++)
-                    {
-                        bmp2.SetPixel(z, y, bmp.GetPixel(z, y));
-                    }
-                }
-
                 // Fills the new width space with the next card
-                for (int z = bmp.Width; z < bmp.Width + cards[x].Width; z++)
+                for (int z = cards[0].Width * x; z < cards[0].Width * (x + 1); z++)
                 {
-                    for(int y = 0; y < height; y++)
+                    for(int y = 0; y < cards[0].Height; y++)
                     {
-                        int tempZ = z - bmp.Width;
-                        System.Drawing.Color newPixel = cards[x].GetPixel(tempZ, y);
-                        bmp2.SetPixel(z, y, newPixel);
+                        bmp2.SetPixel(z, y, cards[x].GetPixel(z - (cards[0].Width * x), y));
                     }
                 }
-                bmp = bmp2;
             }
-            return bmp;
+            return bmp2;
         }
 
         #endregion

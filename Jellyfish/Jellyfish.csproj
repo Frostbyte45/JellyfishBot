@@ -160,7 +160,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CardTools.cs" />
-    <Compile Include="Modules\CardGames.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Modules\JellyfishCommands.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
